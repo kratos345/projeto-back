@@ -19,7 +19,7 @@ exports.register = async (req, res) => {
   }
 
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
@@ -32,14 +32,20 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role
+      role: 'user' // Sempre criar como 'user'
     });
 
-    const { password: _, ...userWithoutPassword } = user.toJSON();
+    const token = generateToken(user);
 
     return res.status(201).json({
       message: "Usuário criado com sucesso",
-      user: userWithoutPassword
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
 
   } catch (error) {
