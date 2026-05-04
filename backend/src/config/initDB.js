@@ -1,5 +1,10 @@
 const { sequelize } = require('../config/database');
 const User = require('../models/User');
+const Property = require('../models/Property');
+const Lead = require('../models/Lead');
+const Favorite = require('../models/Favorite');
+const Visit = require('../models/Visit');
+const Message = require('../models/Message');
 const seedDB = require('./seedDB');
 
 const initDB = async () => {

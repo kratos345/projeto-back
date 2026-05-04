@@ -1,0 +1,136 @@
+/* Leads Styles */
+.leads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.lead-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.lead-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.lead-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.lead-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.lead-contact {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.lead-status .status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.lead-property {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.lead-property h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.lead-property p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.lead-notes {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border-radius: 4px;
+}
+
+.lead-notes h4 {
+  margin: 0 0 0.5rem 0;
+  color: #856404;
+  font-size: 1rem;
+}
+
+.lead-notes p {
+  margin: 0;
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.lead-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lead-actions label {
+  font-weight: 500;
+  color: #333;
+}
+
+.status-select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.lead-date {
+  text-align: right;
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.filter-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .lead-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
