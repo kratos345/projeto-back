@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 export default function RegisterPage() {
   const { signin } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -16,7 +16,7 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    
+
     try {
       const data = await registerRequest(form)
       signin(data.token, data.user)
@@ -32,17 +32,17 @@ export default function RegisterPage() {
     <div className="auth-container">
       <form className="auth-form" onSubmit={submit}>
         <h1>🚀 Criar Conta</h1>
-        
+
         {error && (
           <div className="alert alert-error">
             <span>❌</span>
             <span>{error}</span>
           </div>
         )}
-        
+
         <div className="form-group">
           <label className="form-label">Nome Completo</label>
-          <input 
+          <input
             className="form-input"
             name="name"
             type="text"
@@ -53,10 +53,10 @@ export default function RegisterPage() {
             disabled={loading}
           />
         </div>
-        
+
         <div className="form-group">
           <label className="form-label">E-mail</label>
-          <input 
+          <input
             className="form-input"
             name="email"
             type="email"
@@ -67,10 +67,10 @@ export default function RegisterPage() {
             disabled={loading}
           />
         </div>
-        
+
         <div className="form-group">
           <label className="form-label">Senha</label>
-          <input 
+          <input
             className="form-input"
             name="password"
             type="password"
@@ -82,11 +82,30 @@ export default function RegisterPage() {
             disabled={loading}
           />
         </div>
-        
+
+        <div className="form-group">
+          <label className="form-label">Tipo de Conta</label>
+          <select
+            className="form-input"
+            name="role"
+            value={form.role}
+            onChange={handle}
+            required
+            disabled={loading}
+          >
+            <option value="user">👤 Comprador - Buscar imóveis</option>
+            <option value="vendedor">🏠 Vendedor - Anunciar imóveis</option>
+            <option value="admin">⚙️ Administrador - Gerenciar sistema</option>
+          </select>
+          <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>
+            Escolha o tipo de conta que melhor se adequa às suas necessidades
+          </small>
+        </div>
+
         <button type="submit" disabled={loading} style={{ marginTop: '0.5rem' }}>
           {loading ? '⏳ Cadastrando...' : '✅ Cadastrar'}
         </button>
-        
+
         <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.95rem' }}>
           Já tem conta? <Link to="/login">Entrar aqui</Link>
         </p>

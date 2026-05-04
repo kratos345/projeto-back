@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AdminDashboard from './AdminDashboard';
 import SellerDashboard from './SellerDashboard';
+import SearchPage from '../Search/SearchPage';
 
 export default function DashboardPage() {
   const { user, loading, signout } = useAuth();
@@ -27,10 +28,10 @@ export default function DashboardPage() {
     return null;
   }
 
-  // Navbar comum
+  // Navbar comum para todos os usuários
   const navbar = (
     <header className="top-bar">
-      <h2>Dashboard</h2>
+      <h2>Dashboard - {user.role === 'admin' ? 'Administrador' : user.role === 'vendedor' ? 'Vendedor' : 'Comprador'}</h2>
       <div>
         <span>Olá, {user?.name}! (Role: {user?.role})</span>
         <button onClick={logout}>Sair</button>
@@ -58,22 +59,11 @@ export default function DashboardPage() {
     );
   }
 
-  // Usuário comum vê página inicial de busca
+  // Usuário comum vê a página de busca de imóveis
   return (
     <div className="page">
       {navbar}
-      <main style={{ padding: '2rem' }}>
-        <h1>Bem-vindo, {user.name}! 👋</h1>
-        <p>Esta é sua página inicial. Em breve aqui você poderá buscar imóveis!</p>
-        <div style={{ marginTop: '1rem' }}>
-          <button onClick={() => navigate('/favorites')} style={{ marginRight: '0.5rem' }}>
-            ❤️ Meus Favoritos
-          </button>
-          <button onClick={() => navigate('/profile')}>
-            👤 Meu Perfil
-          </button>
-        </div>
-      </main>
+      <SearchPage />
     </div>
   );
 }

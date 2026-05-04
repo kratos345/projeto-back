@@ -29,7 +29,10 @@ export default function AdminDashboard() {
   return (
     <div className="page dashboard">
       <header className="top-bar">
-        <h1>📊 Dashboard Admin</h1>
+        <h1>⚙️ Painel Administrativo</h1>
+        <div>
+          <button onClick={() => navigate('/users')}>👥 Gerenciar Usuários</button>
+        </div>
       </header>
 
       <main>
@@ -77,7 +80,7 @@ export default function AdminDashboard() {
 
         {/* SEÇÃO DE LEADS */}
         <section className="metrics-section">
-          <h2>💬 Leads</h2>
+          <h2>💬 Gestão de Leads</h2>
           <div className="metrics-grid">
             <div className="metric-card">
               <div className="metric-value">{metrics.leads.total}</div>
@@ -85,12 +88,35 @@ export default function AdminDashboard() {
             </div>
             <div className="metric-card">
               <div className="metric-value" style={{ color: '#e74c3c' }}>{metrics.leads.new}</div>
-              <div className="metric-label">Novos</div>
+              <div className="metric-label">Novos Hoje</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-value" style={{ color: '#f39c12' }}>{metrics.leads.inProgress}</div>
+              <div className="metric-label">Em Andamento</div>
             </div>
             <div className="metric-card">
               <div className="metric-value" style={{ color: '#27ae60' }}>{metrics.leads.closed}</div>
-              <div className="metric-label">Fechados</div>
+              <div className="metric-label">Convertidos</div>
             </div>
+          </div>
+        </section>
+
+        {/* AÇÕES ADMINISTRATIVAS */}
+        <section className="actions-section">
+          <h2>⚡ Ações Administrativas</h2>
+          <div className="actions-grid">
+            <button className="action-btn" onClick={() => navigate('/users')}>
+              👥 Gerenciar Usuários
+            </button>
+            <button className="action-btn" onClick={() => navigate('/properties/pending')}>
+              📋 Aprovar Imóveis
+            </button>
+            <button className="action-btn" onClick={() => navigate('/reports')}>
+              📊 Relatórios
+            </button>
+            <button className="action-btn" onClick={() => navigate('/settings')}>
+              ⚙️ Configurações
+            </button>
           </div>
         </section>
 

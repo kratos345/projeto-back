@@ -90,17 +90,17 @@ export default function SellerDashboard() {
         <section className="actions-section">
           <h2>⚡ Ações Rápidas</h2>
           <div className="actions-grid">
+            <button className="action-btn" onClick={() => navigate('/sales')}>
+              💰 Área de Vendas
+            </button>
+            <button className="action-btn" onClick={() => navigate('/properties/new')}>
+              ➕ Criar Imóvel
+            </button>
             <button className="action-btn" onClick={() => navigate('/properties/my')}>
               📋 Gerenciar Imóveis
             </button>
             <button className="action-btn" onClick={() => navigate('/leads')}>
               💬 Ver Meus Leads
-            </button>
-            <button className="action-btn" onClick={() => navigate('/properties/new')}>
-              ➕ Criar Imóvel
-            </button>
-            <button className="action-btn" onClick={() => navigate('/profile')}>
-              👤 Meu Perfil
             </button>
           </div>
         </section>
