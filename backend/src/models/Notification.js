@@ -1,44 +1,53 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-const Message = sequelize.define('Message', {
+const Notification = sequelize.define('Notification', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
 
-  senderId: {
+  userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
 
-  receiverId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'CASCADE'
+  type: {
+    type: DataTypes.ENUM(
+      'novo_lead',
+      'lead_atualizado',
+      'visita_agendada',
+      'mensagem_nova',
+      'imovel_vendido',
+      'veiculo_vendido',
+      'novo_favorito',
+      'proposta_recebida',
+      'sistema'
+    ),
+    allowNull: false
   },
 
-  propertyId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: { model: 'Properties', key: 'id' },
-    onDelete: 'SET NULL'
-  },
-
-  vehicleId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: { model: 'Vehicles', key: 'id' },
-    onDelete: 'SET NULL'
+  title: {
+    type: DataTypes.STRING(200),
+    allowNull: false
   },
 
   message: {
     type: DataTypes.TEXT,
     allowNull: false
+  },
+
+  relatedEntityId: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+
+  relatedEntityType: {
+    type: DataTypes.ENUM('property', 'vehicle', 'lead', 'visit', 'message'),
+    allowNull: true
   },
 
   isRead: {
@@ -63,10 +72,10 @@ const Message = sequelize.define('Message', {
 }, {
   timestamps: true,
   indexes: [
-    { fields: ['senderId', 'receiverId'] },
+    { fields: ['userId'] },
     { fields: ['isRead'] },
     { fields: ['createdAt'] }
   ]
 });
 
-module.exports = Message;
+module.exports = Notification;

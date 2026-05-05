@@ -8,18 +8,44 @@ const Favorite = sequelize.define('Favorite', {
     primaryKey: true
   },
 
-  user_id: {
+  userId: {
     type: DataTypes.INTEGER,
+    allowNull: false,
+    references: { model: 'Users', key: 'id' },
+    onDelete: 'CASCADE'
+  },
+
+  propertyId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'Properties', key: 'id' },
+    onDelete: 'CASCADE'
+  },
+
+  vehicleId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'Vehicles', key: 'id' },
+    onDelete: 'CASCADE'
+  },
+
+  itemType: {
+    type: DataTypes.ENUM('property', 'vehicle'),
     allowNull: false
   },
 
-  property_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  }
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
 
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
 }, {
-  timestamps: true
+  timestamps: true,
+  indexes: [{ fields: ['userId', 'itemType'] }]
 });
 
 module.exports = Favorite;

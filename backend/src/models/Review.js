@@ -1,21 +1,21 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-const Message = sequelize.define('Message', {
+const Review = sequelize.define('Review', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
 
-  senderId: {
+  reviewerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
 
-  receiverId: {
+  sellerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'Users', key: 'id' },
@@ -36,19 +36,25 @@ const Message = sequelize.define('Message', {
     onDelete: 'SET NULL'
   },
 
-  message: {
-    type: DataTypes.TEXT,
-    allowNull: false
+  rating: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    validate: { min: 1, max: 5 }
   },
 
-  isRead: {
+  title: {
+    type: DataTypes.STRING(200),
+    allowNull: true
+  },
+
+  comment: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+
+  isVerified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
-  },
-
-  readAt: {
-    type: DataTypes.DATE,
-    allowNull: true
   },
 
   createdAt: {
@@ -63,10 +69,10 @@ const Message = sequelize.define('Message', {
 }, {
   timestamps: true,
   indexes: [
-    { fields: ['senderId', 'receiverId'] },
-    { fields: ['isRead'] },
-    { fields: ['createdAt'] }
+    { fields: ['sellerId'] },
+    { fields: ['reviewerId'] },
+    { fields: ['rating'] }
   ]
 });
 
-module.exports = Message;
+module.exports = Review;

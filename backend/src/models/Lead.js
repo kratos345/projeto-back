@@ -8,24 +8,43 @@ const Lead = sequelize.define('Lead', {
     primaryKey: true
   },
 
-  property_id: {
+  propertyId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: true,
+    references: { model: 'Properties', key: 'id' },
+    onDelete: 'CASCADE'
   },
 
-  buyer_id: {
+  vehicleId: {
     type: DataTypes.INTEGER,
-    allowNull: true
+    allowNull: true,
+    references: { model: 'Vehicles', key: 'id' },
+    onDelete: 'CASCADE'
+  },
+
+  buyerId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'Users', key: 'id' },
+    onDelete: 'SET NULL'
+  },
+
+  sellerId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: { model: 'Users', key: 'id' },
+    onDelete: 'CASCADE'
   },
 
   name: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(150),
     allowNull: true
   },
 
   email: {
     type: DataTypes.STRING(150),
-    allowNull: true
+    allowNull: true,
+    validate: { isEmail: true }
   },
 
   phone: {
@@ -34,17 +53,38 @@ const Lead = sequelize.define('Lead', {
   },
 
   status: {
-    type: DataTypes.ENUM('novo', 'contato_feito', 'visita_marcada', 'proposta', 'fechado'),
+    type: DataTypes.ENUM('novo', 'contatado', 'visita_agendada', 'proposta_enviada', 'negociando', 'fechado', 'perdido'),
     defaultValue: 'novo'
   },
 
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
-  }
+  },
 
+  source: {
+    type: DataTypes.ENUM('website', 'app', 'phone', 'whatsapp', 'email'),
+    defaultValue: 'website'
+  },
+
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
 }, {
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    { fields: ['sellerId'] },
+    { fields: ['buyerId'] },
+    { fields: ['status'] },
+    { fields: ['propertyId'] },
+    { fields: ['vehicleId'] }
+  ]
 });
 
 module.exports = Lead;

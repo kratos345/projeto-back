@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-const Property = sequelize.define('Property', {
+const Vehicle = sequelize.define('Vehicle', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -26,9 +26,25 @@ const Property = sequelize.define('Property', {
   },
 
   category: {
-    type: DataTypes.ENUM('Casa', 'Apartamento', 'Cobertura', 'Terreno', 'Comercial', 'Galpão'),
-    defaultValue: 'Casa',
+    type: DataTypes.ENUM('Sedan', 'SUV', 'Hatch', 'Pickup', 'Esportivo', 'Moto', 'Caminhão', 'Van'),
+    defaultValue: 'Sedan',
     allowNull: false
+  },
+
+  brand: {
+    type: DataTypes.STRING(100),
+    allowNull: false
+  },
+
+  model: {
+    type: DataTypes.STRING(150),
+    allowNull: false
+  },
+
+  year: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    validate: { min: 1900, max: 2100 }
   },
 
   price: {
@@ -37,42 +53,55 @@ const Property = sequelize.define('Property', {
     validate: { min: 0 }
   },
 
-  beds: {
+  mileage: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     defaultValue: 0,
     validate: { min: 0 }
   },
 
-  baths: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    validate: { min: 0 }
-  },
-
-  area: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-    validate: { min: 0 }
-  },
-
-  street: {
-    type: DataTypes.STRING(200),
-    allowNull: false
-  },
-
-  number: {
-    type: DataTypes.STRING(20),
-    allowNull: false
-  },
-
-  complement: {
-    type: DataTypes.STRING(150),
+  color: {
+    type: DataTypes.STRING(50),
     allowNull: true
   },
 
-  neighborhood: {
-    type: DataTypes.STRING(100),
-    allowNull: false
+  transmission: {
+    type: DataTypes.ENUM('Manual', 'Automático', 'CVT'),
+    defaultValue: 'Automático'
+  },
+
+  fuel: {
+    type: DataTypes.ENUM('Gasolina', 'Diesel', 'Flex', 'Elétrico', 'Híbrido'),
+    defaultValue: 'Flex'
+  },
+
+  seats: {
+    type: DataTypes.INTEGER,
+    defaultValue: 5,
+    validate: { min: 1, max: 8 }
+  },
+
+  doors: {
+    type: DataTypes.INTEGER,
+    defaultValue: 4,
+    validate: { min: 2, max: 5 }
+  },
+
+  licensePlate: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    unique: true
+  },
+
+  engine: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
+
+  power: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    validate: { min: 0 }
   },
 
   city: {
@@ -83,21 +112,6 @@ const Property = sequelize.define('Property', {
   state: {
     type: DataTypes.STRING(2),
     allowNull: false
-  },
-
-  zipCode: {
-    type: DataTypes.STRING(20),
-    allowNull: true
-  },
-
-  latitude: {
-    type: DataTypes.DECIMAL(10, 8),
-    allowNull: true
-  },
-
-  longitude: {
-    type: DataTypes.DECIMAL(11, 8),
-    allowNull: true
   },
 
   status: {
@@ -131,8 +145,10 @@ const Property = sequelize.define('Property', {
     { fields: ['city'] },
     { fields: ['status'] },
     { fields: ['price'] },
-    { fields: ['featured'] }
+    { fields: ['featured'] },
+    { fields: ['brand'] },
+    { fields: ['year'] }
   ]
 });
 
-module.exports = Property;
+module.exports = Vehicle;

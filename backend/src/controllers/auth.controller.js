@@ -19,7 +19,10 @@ exports.register = async (req, res) => {
   }
 
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
+
+    const validRoles = ['user', 'vendedor', 'admin'];
+    const normalizedRole = validRoles.includes(role) ? role : 'user';
 
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
@@ -32,7 +35,7 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: 'user' // Sempre criar como 'user'
+      role: normalizedRole,
     });
 
     const token = generateToken(user);
