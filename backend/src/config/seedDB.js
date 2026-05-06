@@ -63,8 +63,13 @@ const seedDB = async () => {
       beds: 4,
       baths: 3,
       area: 320,
+      street: 'Rua das Flores',
+      number: '123',
+      complement: 'Casa',
+      neighborhood: 'Centro',
       city: 'São Paulo',
       state: 'SP',
+      zipCode: '01234-567',
       status: 'disponivel',
       featured: true
     });
@@ -78,8 +83,13 @@ const seedDB = async () => {
       beds: 3,
       baths: 2,
       area: 140,
+      street: 'Avenida Atlântica',
+      number: '456',
+      complement: 'Apt 101',
+      neighborhood: 'Praia Central',
       city: 'Balneário Camboriú',
       state: 'SC',
+      zipCode: '88330-000',
       status: 'disponivel'
     });
 
@@ -91,12 +101,16 @@ const seedDB = async () => {
     const veh1 = await Vehicle.create({
       sellerId: seller2.id,
       title: 'BMW X5',
-      category: 'SUV',
+      description: 'SUV luxuoso com todos os opcionais',
+      category: 'Carro',
       brand: 'BMW',
       model: 'X5',
       year: 2024,
       price: 520000,
       mileage: 8000,
+      fuel_type: 'Gasolina',
+      transmission: 'Automático',
+      color: 'Preto',
       city: 'São Paulo',
       state: 'SP',
       status: 'disponivel'
