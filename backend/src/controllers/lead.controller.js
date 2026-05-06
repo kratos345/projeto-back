@@ -4,18 +4,18 @@ const Property = require('../models/Property');
 // 🟢 CRIAR novo lead
 exports.create = async (req, res, next) => {
   try {
-    const { property_id, name, email, phone } = req.body;
-    const buyer_id = req.user?.id || null;
+    const { propertyId, name, email, phone } = req.body;
+    const buyerId = req.user?.id || null;
 
     // Validar propriedade
-    const property = await Property.findByPk(property_id);
+    const property = await Property.findByPk(propertyId);
     if (!property) {
       return res.status(404).json({ message: 'Propriedade não encontrada' });
     }
 
     const lead = await Lead.create({
-      property_id,
-      buyer_id,
+      propertyId,
+      buyerId,
       name,
       email,
       phone,
@@ -37,7 +37,7 @@ exports.getByVendedor = async (req, res, next) => {
       include: [
         {
           model: Property,
-          where: { seller_id: id },
+          where: { sellerId: id },
           attributes: ['id', 'title', 'address']
         }
       ]
@@ -53,7 +53,7 @@ exports.getByVendedor = async (req, res, next) => {
 exports.getByProperty = async (req, res, next) => {
   try {
     const leads = await Lead.findAll({
-      where: { property_id: req.params.id }
+      where: { propertyId: req.params.id }
     });
 
     res.json(leads);
@@ -92,7 +92,7 @@ exports.getMetrics = async (req, res, next) => {
       include: [
         {
           model: Property,
-          where: { seller_id: id },
+          where: { sellerId: id },
           attributes: []
         }
       ],

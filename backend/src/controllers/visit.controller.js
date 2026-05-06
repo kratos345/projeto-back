@@ -4,12 +4,12 @@ const Lead = require('../models/Lead');
 // 🟢 AGENDAR visita
 exports.create = async (req, res, next) => {
   try {
-    const { property_id, lead_id, scheduled_date, notes } = req.body;
+    const { propertyId, leadId, scheduledDate, notes } = req.body;
 
     const visit = await Visit.create({
-      property_id,
-      lead_id,
-      scheduled_date,
+      propertyId,
+      leadId,
+      scheduledDate,
       notes,
       status: 'agendada'
     });
@@ -24,7 +24,7 @@ exports.create = async (req, res, next) => {
 exports.getByLead = async (req, res, next) => {
   try {
     const visits = await Visit.findAll({
-      where: { lead_id: req.params.id }
+      where: { leadId: req.params.id }
     });
 
     res.json(visits);

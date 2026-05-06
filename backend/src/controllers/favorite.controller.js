@@ -3,10 +3,10 @@ const Favorite = require('../models/Favorite');
 // 🟢 ADICIONAR aos favoritos
 exports.add = async (req, res, next) => {
   try {
-    const { property_id } = req.body;
-    const user_id = req.user.id;
+    const { propertyId } = req.body;
+    const userId = req.user.id;
 
-    const favorite = await Favorite.create({ user_id, property_id });
+    const favorite = await Favorite.create({ userId, propertyId });
     res.status(201).json(favorite);
   } catch (err) {
     next(err);
@@ -17,9 +17,9 @@ exports.add = async (req, res, next) => {
 exports.remove = async (req, res, next) => {
   try {
     const { property_id } = req.params;
-    const user_id = req.user.id;
+    const userId = req.user.id;
 
-    await Favorite.destroy({ where: { user_id, property_id } });
+    await Favorite.destroy({ where: { userId, propertyId: property_id } });
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -29,10 +29,10 @@ exports.remove = async (req, res, next) => {
 // 🟣 LISTAR favoritos do usuário
 exports.getByUser = async (req, res, next) => {
   try {
-    const user_id = req.user.id;
+    const userId = req.user.id;
 
     const favorites = await Favorite.findAll({
-      where: { user_id },
+      where: { userId },
       include: [{ model: require('../models/Property') }]
     });
 

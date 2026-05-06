@@ -11,6 +11,7 @@ const Lead = sequelize.define('Lead', {
   propertyId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'property_id',
     references: { model: 'Properties', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -18,6 +19,7 @@ const Lead = sequelize.define('Lead', {
   vehicleId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'vehicle_id',
     references: { model: 'Vehicles', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -25,6 +27,7 @@ const Lead = sequelize.define('Lead', {
   buyerId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'buyer_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'SET NULL'
   },
@@ -32,6 +35,7 @@ const Lead = sequelize.define('Lead', {
   sellerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'seller_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },

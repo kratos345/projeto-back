@@ -11,6 +11,7 @@ const Visit = sequelize.define('Visit', {
   propertyId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'property_id',
     references: { model: 'Properties', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -18,6 +19,7 @@ const Visit = sequelize.define('Visit', {
   vehicleId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'vehicle_id',
     references: { model: 'Vehicles', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -25,6 +27,7 @@ const Visit = sequelize.define('Visit', {
   leadId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'lead_id',
     references: { model: 'Leads', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -32,6 +35,7 @@ const Visit = sequelize.define('Visit', {
   buyerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'buyer_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -39,13 +43,15 @@ const Visit = sequelize.define('Visit', {
   sellerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'seller_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
 
   scheduledDate: {
     type: DataTypes.DATE,
-    allowNull: false
+    allowNull: false,
+    field: 'scheduled_date'
   },
 
   status: {

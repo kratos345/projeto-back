@@ -11,6 +11,7 @@ const Message = sequelize.define('Message', {
   senderId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'sender_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -18,6 +19,7 @@ const Message = sequelize.define('Message', {
   receiverId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'receiver_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -25,6 +27,7 @@ const Message = sequelize.define('Message', {
   propertyId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'property_id',
     references: { model: 'Properties', key: 'id' },
     onDelete: 'SET NULL'
   },
@@ -32,6 +35,7 @@ const Message = sequelize.define('Message', {
   vehicleId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'vehicle_id',
     references: { model: 'Vehicles', key: 'id' },
     onDelete: 'SET NULL'
   },

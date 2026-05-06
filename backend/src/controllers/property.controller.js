@@ -30,7 +30,7 @@ exports.getByVendedor = async (req, res, next) => {
     const { id } = req.user; // vem do middleware de autenticação
 
     const properties = await Property.findAll({
-      where: { seller_id: id }
+      where: { sellerId: id }
     });
 
     res.json(properties);
@@ -63,7 +63,7 @@ exports.getById = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { title, description, type, price, bedrooms, bathrooms, area, address, city, state, zipCode } = req.body;
-    const seller_id = req.user.id;
+    const sellerId = req.user.id;
 
     const property = await Property.create({
       title,
@@ -73,12 +73,12 @@ exports.create = async (req, res, next) => {
       bedrooms,
       bathrooms,
       area,
-      address,
+      street: address,
       city,
       state,
       zipCode,
-      seller_id,
-      status: 'pendente' // Começa pendente até aprovação do admin
+      sellerId,
+      status: 'pendente'
     });
 
     res.status(201).json(property);
@@ -97,11 +97,17 @@ exports.update = async (req, res, next) => {
     }
 
     // Verificar se é o dono ou admin
-    if (req.user.role !== 'admin' && property.seller_id !== req.user.id) {
+    if (req.user.role !== 'admin' && property.sellerId !== req.user.id) {
       return res.status(403).json({ message: 'Acesso negado' });
     }
 
-    await property.update(req.body);
+    const updateData = { ...req.body };
+    if (req.body.type) updateData.type = req.body.type;
+    if (req.body.bedrooms !== undefined) updateData.bedrooms = req.body.bedrooms;
+    if (req.body.bathrooms !== undefined) updateData.bathrooms = req.body.bathrooms;
+    if (req.body.address !== undefined) updateData.street = req.body.address;
+
+    await property.update(updateData);
     res.json(property);
   } catch (err) {
     next(err);
@@ -118,7 +124,7 @@ exports.delete = async (req, res, next) => {
     }
 
     // Verificar se é o dono ou admin
-    if (req.user.role !== 'admin' && property.seller_id !== req.user.id) {
+    if (req.user.role !== 'admin' && property.sellerId !== req.user.id) {
       return res.status(403).json({ message: 'Acesso negado' });
     }
 

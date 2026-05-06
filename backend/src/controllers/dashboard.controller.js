@@ -85,13 +85,13 @@ exports.sellerMetrics = async (req, res, next) => {
     const { id } = req.user;
 
     // Propriedades do vendedor
-    const totalProperties = await Property.count({ where: { seller_id: id } });
-    const activeProperties = await Property.count({ where: { seller_id: id, status: 'ativo' } });
-    const soldProperties = await Property.count({ where: { seller_id: id, status: 'vendido' } });
+    const totalProperties = await Property.count({ where: { sellerId: id } });
+    const activeProperties = await Property.count({ where: { sellerId: id, status: 'ativo' } });
+    const soldProperties = await Property.count({ where: { sellerId: id, status: 'vendido' } });
 
     // Leads relacionados
     const totalLeads = await Lead.count({
-      include: [{ model: Property, where: { seller_id: id }, attributes: [] }]
+      include: [{ model: Property, where: { sellerId: id }, attributes: [] }]
     });
 
     const leadsPerStatus = await Lead.findAll({
@@ -99,14 +99,14 @@ exports.sellerMetrics = async (req, res, next) => {
         'status',
         [sequelize.sequelize.fn('COUNT', sequelize.sequelize.col('id')), 'count']
       ],
-      include: [{ model: Property, where: { seller_id: id }, attributes: [] }],
+      include: [{ model: Property, where: { sellerId: id }, attributes: [] }],
       group: ['status'],
       raw: true
     });
 
     // Total de visualizações
     const totalViews = await Property.findAll({
-      where: { seller_id: id },
+      where: { sellerId: id },
       attributes: [[sequelize.sequelize.fn('SUM', sequelize.sequelize.col('views')), 'total']]
     });
 

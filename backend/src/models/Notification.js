@@ -11,6 +11,7 @@ const Notification = sequelize.define('Notification', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'user_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },

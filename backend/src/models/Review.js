@@ -11,6 +11,7 @@ const Review = sequelize.define('Review', {
   reviewerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'reviewer_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -18,6 +19,7 @@ const Review = sequelize.define('Review', {
   sellerId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'seller_id',
     references: { model: 'Users', key: 'id' },
     onDelete: 'CASCADE'
   },
@@ -25,6 +27,7 @@ const Review = sequelize.define('Review', {
   propertyId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'property_id',
     references: { model: 'Properties', key: 'id' },
     onDelete: 'SET NULL'
   },
@@ -32,6 +35,7 @@ const Review = sequelize.define('Review', {
   vehicleId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: 'vehicle_id',
     references: { model: 'Vehicles', key: 'id' },
     onDelete: 'SET NULL'
   },
