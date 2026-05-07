@@ -10,10 +10,7 @@ const Vehicle = sequelize.define('Vehicle', {
 
   sellerId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'seller_id',
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   title: {

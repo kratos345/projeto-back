@@ -10,10 +10,7 @@ const VehicleImage = sequelize.define('VehicleImage', {
 
   vehicleId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'vehicle_id',
-    references: { model: 'Vehicles', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   url: {

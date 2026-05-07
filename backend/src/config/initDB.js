@@ -16,87 +16,264 @@ const seedDB = require('./seedDB');
 // Define Associations
 const defineAssociations = () => {
   // User Associations
-  User.hasMany(Property, { foreignKey: 'sellerId', as: 'properties' });
-  User.hasMany(Vehicle, { foreignKey: 'sellerId', as: 'vehicles' });
-  User.hasMany(Lead, { foreignKey: 'sellerId', as: 'leads' });
-  User.hasMany(Review, { foreignKey: 'sellerId', as: 'reviews' });
-  User.hasMany(Transaction, { foreignKey: 'sellerId', as: 'transactionsSold' });
-  User.hasMany(Transaction, { foreignKey: 'buyerId', as: 'transactionsBought' });
+  User.hasMany(Property, { 
+    foreignKey: 'sellerId', 
+    as: 'properties',
+    onDelete: 'CASCADE'
+  });
+  User.hasMany(Vehicle, { 
+    foreignKey: 'sellerId', 
+    as: 'vehicles',
+    onDelete: 'CASCADE'
+  });
+  User.hasMany(Lead, { 
+    foreignKey: 'sellerId', 
+    as: 'leads',
+    onDelete: 'CASCADE'
+  });
+  User.hasMany(Review, { 
+    foreignKey: 'sellerId', 
+    as: 'reviews',
+    onDelete: 'CASCADE'
+  });
+  User.hasMany(Transaction, { 
+    foreignKey: 'sellerId', 
+    as: 'transactionsSold',
+    onDelete: 'CASCADE'
+  });
+  User.hasMany(Transaction, { 
+    foreignKey: 'buyerId', 
+    as: 'transactionsBought',
+    onDelete: 'CASCADE'
+  });
 
   // Property Associations
-  Property.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-  Property.hasMany(PropertyImage, { foreignKey: 'propertyId', as: 'images' });
-  Property.hasMany(Favorite, { foreignKey: 'propertyId' });
-  Property.hasMany(Lead, { foreignKey: 'propertyId', as: 'leads' });
-  Property.hasMany(Visit, { foreignKey: 'propertyId', as: 'visits' });
-  Property.hasMany(Message, { foreignKey: 'propertyId' });
-  Property.hasMany(Review, { foreignKey: 'propertyId' });
-  Property.hasMany(Transaction, { foreignKey: 'propertyId' });
+  Property.belongsTo(User, { 
+    foreignKey: 'sellerId', 
+    as: 'seller',
+    onDelete: 'CASCADE'
+  });
+  Property.hasMany(PropertyImage, { 
+    foreignKey: 'propertyId', 
+    as: 'images',
+    onDelete: 'CASCADE'
+  });
+  Property.hasMany(Favorite, { 
+    foreignKey: 'propertyId',
+    onDelete: 'CASCADE'
+  });
+  Property.hasMany(Lead, { 
+    foreignKey: 'propertyId', 
+    as: 'leads',
+    onDelete: 'CASCADE'
+  });
+  Property.hasMany(Visit, { 
+    foreignKey: 'propertyId', 
+    as: 'visits',
+    onDelete: 'CASCADE'
+  });
+  Property.hasMany(Message, { 
+    foreignKey: 'propertyId',
+    onDelete: 'SET NULL'
+  });
+  Property.hasMany(Review, { 
+    foreignKey: 'propertyId',
+    onDelete: 'SET NULL'
+  });
+  Property.hasMany(Transaction, { 
+    foreignKey: 'propertyId',
+    onDelete: 'SET NULL'
+  });
 
   // Vehicle Associations
-  Vehicle.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-  Vehicle.hasMany(VehicleImage, { foreignKey: 'vehicleId', as: 'images' });
-  Vehicle.hasMany(Favorite, { foreignKey: 'vehicleId' });
-  Vehicle.hasMany(Lead, { foreignKey: 'vehicleId', as: 'leads' });
-  Vehicle.hasMany(Visit, { foreignKey: 'vehicleId', as: 'visits' });
-  Vehicle.hasMany(Message, { foreignKey: 'vehicleId' });
-  Vehicle.hasMany(Review, { foreignKey: 'vehicleId' });
-  Vehicle.hasMany(Transaction, { foreignKey: 'vehicleId' });
+  Vehicle.belongsTo(User, { 
+    foreignKey: 'sellerId', 
+    as: 'seller',
+    onDelete: 'CASCADE'
+  });
+  Vehicle.hasMany(VehicleImage, { 
+    foreignKey: 'vehicleId', 
+    as: 'images',
+    onDelete: 'CASCADE'
+  });
+  Vehicle.hasMany(Favorite, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'CASCADE'
+  });
+  Vehicle.hasMany(Lead, { 
+    foreignKey: 'vehicleId', 
+    as: 'leads',
+    onDelete: 'CASCADE'
+  });
+  Vehicle.hasMany(Visit, { 
+    foreignKey: 'vehicleId', 
+    as: 'visits',
+    onDelete: 'CASCADE'
+  });
+  Vehicle.hasMany(Message, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'SET NULL'
+  });
+  Vehicle.hasMany(Review, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'SET NULL'
+  });
+  Vehicle.hasMany(Transaction, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'SET NULL'
+  });
 
   // PropertyImage Associations
-  PropertyImage.belongsTo(Property, { foreignKey: 'propertyId' });
+  PropertyImage.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'CASCADE'
+  });
 
   // VehicleImage Associations
-  VehicleImage.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+  VehicleImage.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'CASCADE'
+  });
 
   // Favorite Associations
-  Favorite.belongsTo(User, { foreignKey: 'userId' });
-  Favorite.belongsTo(Property, { foreignKey: 'propertyId' });
-  Favorite.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+  Favorite.belongsTo(User, { 
+    foreignKey: 'userId',
+    onDelete: 'CASCADE'
+  });
+  Favorite.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'CASCADE'
+  });
+  Favorite.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'CASCADE'
+  });
 
   // Lead Associations
-  Lead.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-  Lead.belongsTo(User, { foreignKey: 'buyerId', as: 'buyer' });
-  Lead.belongsTo(Property, { foreignKey: 'propertyId' });
-  Lead.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
-  Lead.hasMany(Visit, { foreignKey: 'leadId' });
-  Lead.hasMany(Message, { foreignKey: 'leadId' });
+  Lead.belongsTo(User, { 
+    foreignKey: 'sellerId', 
+    as: 'seller',
+    onDelete: 'CASCADE'
+  });
+  Lead.belongsTo(User, { 
+    foreignKey: 'buyerId', 
+    as: 'buyer',
+    onDelete: 'SET NULL'
+  });
+  Lead.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'CASCADE'
+  });
+  Lead.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'CASCADE'
+  });
+  Lead.hasMany(Visit, { 
+    foreignKey: 'leadId',
+    onDelete: 'CASCADE'
+  });
+  Lead.hasMany(Message, { 
+    foreignKey: 'leadId',
+    onDelete: 'CASCADE'
+  });
 
   // Visit Associations
-  Visit.belongsTo(Lead, { foreignKey: 'leadId' });
-  Visit.belongsTo(User, { foreignKey: 'buyerId', as: 'buyer' });
-  Visit.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-  Visit.belongsTo(Property, { foreignKey: 'propertyId' });
-  Visit.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+  Visit.belongsTo(Lead, { 
+    foreignKey: 'leadId',
+    onDelete: 'CASCADE'
+  });
+  Visit.belongsTo(User, { 
+    foreignKey: 'buyerId', 
+    as: 'buyer',
+    onDelete: 'CASCADE'
+  });
+  Visit.belongsTo(User, { 
+    foreignKey: 'sellerId', 
+    as: 'seller',
+    onDelete: 'CASCADE'
+  });
+  Visit.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'CASCADE'
+  });
+  Visit.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'CASCADE'
+  });
 
   // Message Associations
-  Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
-  Message.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
-  Message.belongsTo(Property, { foreignKey: 'propertyId' });
-  Message.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+  Message.belongsTo(User, { 
+    foreignKey: 'senderId', 
+    as: 'sender',
+    onDelete: 'CASCADE'
+  });
+  Message.belongsTo(User, { 
+    foreignKey: 'receiverId', 
+    as: 'receiver',
+    onDelete: 'CASCADE'
+  });
+  Message.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'SET NULL'
+  });
+  Message.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'SET NULL'
+  });
 
   // Review Associations
-  Review.belongsTo(User, { foreignKey: 'reviewerId', as: 'reviewer' });
-  Review.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-  Review.belongsTo(Property, { foreignKey: 'propertyId' });
-  Review.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+  Review.belongsTo(User, { 
+    foreignKey: 'reviewerId', 
+    as: 'reviewer',
+    onDelete: 'CASCADE'
+  });
+  Review.belongsTo(User, { 
+    foreignKey: 'sellerId', 
+    as: 'seller',
+    onDelete: 'CASCADE'
+  });
+  Review.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'SET NULL'
+  });
+  Review.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'SET NULL'
+  });
 
   // Notification Associations
-  Notification.belongsTo(User, { foreignKey: 'userId' });
+  Notification.belongsTo(User, { 
+    foreignKey: 'userId',
+    onDelete: 'CASCADE'
+  });
 
   // Transaction Associations
-  Transaction.belongsTo(User, { foreignKey: 'buyerId', as: 'buyer' });
-  Transaction.belongsTo(User, { foreignKey: 'sellerId', as: 'seller' });
-  Transaction.belongsTo(Property, { foreignKey: 'propertyId' });
-  Transaction.belongsTo(Vehicle, { foreignKey: 'vehicleId' });
+  Transaction.belongsTo(User, { 
+    foreignKey: 'buyerId', 
+    as: 'buyer',
+    onDelete: 'CASCADE'
+  });
+  Transaction.belongsTo(User, { 
+    foreignKey: 'sellerId', 
+    as: 'seller',
+    onDelete: 'CASCADE'
+  });
+  Transaction.belongsTo(Property, { 
+    foreignKey: 'propertyId',
+    onDelete: 'SET NULL'
+  });
+  Transaction.belongsTo(Vehicle, { 
+    foreignKey: 'vehicleId',
+    onDelete: 'SET NULL'
+  });
 };
 
 const initDB = async () => {
   try {
     defineAssociations();
 
-    // Sincroniza os modelos com o banco de dados
-    await sequelize.sync({ alter: true });
+    // Sincroniza os modelos com o banco de dados (force: true recria tudo)
+    await sequelize.sync({ force: false });
     console.log('✅ Banco de dados sincronizado com sucesso!');
     
     // Inserir usuários e dados de teste

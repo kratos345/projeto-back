@@ -15,28 +15,42 @@ const generateToken = (user) => {
 exports.register = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    console.error('❌ Erros de validação:', errors.array());
+    return res.status(400).json({ 
+      message: "Dados inválidos: " + errors.array().map(e => e.msg).join(', ') 
+    });
   }
 
   try {
     const { name, email, password, role } = req.body;
 
+    // Validação de campos obrigatórios
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Nome, email e senha são obrigatórios" });
+    }
+
     const validRoles = ['user', 'vendedor', 'admin'];
     const normalizedRole = validRoles.includes(role) ? role : 'user';
 
+    // Verificar se email já existe
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      return res.status(400).json({ message: "Email já existe" });
+      console.log('⚠️ Email já registrado:', email);
+      return res.status(400).json({ message: "Este email já está cadastrado. Faça login ou use outro email." });
     }
 
+    // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Criar usuário
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role: normalizedRole,
     });
+
+    console.log('✅ Usuário criado com sucesso:', user.email);
 
     const token = generateToken(user);
 
@@ -52,7 +66,14 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('❌ Erro no registro:', error);
+    
+    // Erro de chave duplicada
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ message: "Email já cadastrado. Tente fazer login." });
+    }
+    
+    return res.status(500).json({ message: "Erro ao criar usuário. Tente novamente." });
   }
 };
 
@@ -60,7 +81,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    console.error('❌ Erros de validação no login:', errors.array());
+    return res.status(400).json({ 
+      message: "Email e senha são obrigatórios" 
+    });
   }
 
   try {
@@ -69,15 +93,18 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+      console.log('⚠️ Usuário não encontrado:', email);
+      return res.status(404).json({ message: "Usuário não encontrado. Faça o cadastro primeiro." });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Senha inválida" });
+      console.log('⚠️ Senha incorreta para:', email);
+      return res.status(401).json({ message: "Senha incorreta" });
     }
 
+    console.log('✅ Login realizado:', email);
     const token = generateToken(user);
 
     return res.json({
@@ -92,6 +119,7 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('❌ Erro no login:', error);
+    return res.status(500).json({ message: "Erro ao fazer login. Tente novamente." });
   }
 };

@@ -10,48 +10,32 @@ const Visit = sequelize.define('Visit', {
 
   propertyId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    field: 'property_id',
-    references: { model: 'Properties', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: true
   },
 
   vehicleId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    field: 'vehicle_id',
-    references: { model: 'Vehicles', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: true
   },
 
   leadId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'lead_id',
-    references: { model: 'Leads', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   buyerId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'buyer_id',
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   sellerId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'seller_id',
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   scheduledDate: {
     type: DataTypes.DATE,
-    allowNull: false,
-    field: 'scheduled_date'
+    allowNull: false
   },
 
   status: {

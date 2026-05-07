@@ -10,10 +10,7 @@ const PropertyImage = sequelize.define('PropertyImage', {
 
   propertyId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'property_id',
-    references: { model: 'Properties', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   url: {

@@ -10,34 +10,22 @@ const Lead = sequelize.define('Lead', {
 
   propertyId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    field: 'property_id',
-    references: { model: 'Properties', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: true
   },
 
   vehicleId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    field: 'vehicle_id',
-    references: { model: 'Vehicles', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: true
   },
 
   buyerId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    field: 'buyer_id',
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
 
   sellerId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'seller_id',
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   name: {

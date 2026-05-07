@@ -10,10 +10,7 @@ const Property = sequelize.define('Property', {
 
   sellerId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    field: 'seller_id',
-    references: { model: 'Users', key: 'id' },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
 
   title: {
@@ -29,8 +26,7 @@ const Property = sequelize.define('Property', {
   type: {
     type: DataTypes.ENUM('Casa', 'Apartamento', 'Cobertura', 'Terreno', 'Comercial', 'Galpão'),
     defaultValue: 'Casa',
-    allowNull: false,
-    field: 'category'
+    allowNull: false
   },
 
   price: {
@@ -42,14 +38,12 @@ const Property = sequelize.define('Property', {
   bedrooms: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
-    field: 'beds',
     validate: { min: 0 }
   },
 
   bathrooms: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
-    field: 'baths',
     validate: { min: 0 }
   },
 

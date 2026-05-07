@@ -16,34 +16,15 @@ const seedDB = async () => {
       return;
     }
 
-    console.log('🌱 Iniciando seed (SEM usuários)...');
+    console.log('🌱 Iniciando seed...');
 
     // 🔥 Buscar usuários existentes
     let users = await User.findAll();
 
-    if (users.length < 3) {
-      console.log('🌱 Criando usuários de teste automaticamente...');
-
-      const defaultUsers = [
-        { name: 'Admin Teste', email: 'admin@teste.com', password: await bcrypt.hash('123456', 10), role: 'admin' },
-        { name: 'Vendedor Teste', email: 'vendedor@teste.com', password: await bcrypt.hash('123456', 10), role: 'vendedor' },
-        { name: 'Comprador Teste', email: 'comprador@teste.com', password: await bcrypt.hash('123456', 10), role: 'user' }
-      ];
-
-      for (const userData of defaultUsers) {
-        const existing = await User.findOne({ where: { email: userData.email } });
-        if (!existing) {
-          await User.create(userData);
-        }
-      }
-
-      users = await User.findAll();
-  }
-
-  if (users.length < 3) {
-    console.log('⚠️ Não foi possível criar 3 usuários de teste. Verifique o banco de dados.');
-    return;
-  }
+    if (users.length === 0) {
+      console.log('⚠️ Nenhum usuário encontrado. Por favor, crie um usuário primeiro via registro.');
+      return;
+    }
 
     const seller1 = users[0];
     const seller2 = users[1];
