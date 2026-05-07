@@ -57,7 +57,7 @@ const User = sequelize.define('User', {
   },
 
   profileImage: {
-    type: DataTypes.STRING(500),
+''    type: DataTypes.TEXT,
     allowNull: true
   },
 

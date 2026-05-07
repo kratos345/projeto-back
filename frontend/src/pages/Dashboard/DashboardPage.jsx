@@ -1,6 +1,8 @@
 ﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { getMyProperties, deleteProperty } from '../../api/properties';
+import { updateCurrentUser } from '../../api/users';
 import PrimeVendaTheme from '../../components/PrimeVendaTheme';
 
 const PROPERTIES = [
@@ -72,6 +74,8 @@ const StatusBadge = ({ status }) => {
     disponivel: ['badge badge-green', 'Disponível'],
     negociando: ['badge badge-gold', 'Negociando'],
     vendido: ['badge badge-red', 'Vendido'],
+    pendente: ['badge badge-muted', 'Pendente'],
+    arquivado: ['badge badge-muted', 'Arquivado'],
     ativo: ['badge badge-green', 'Ativo'],
     inativo: ['badge badge-muted', 'Inativo'],
   };
@@ -102,15 +106,19 @@ const TAB_META = {
 const ROLE_LABEL = { usuario: 'Usuário', vendedor: 'Vendedor', adm: 'Administrador' };
 const ROLE_ICON = { usuario: '👤', vendedor: '🏪', adm: '🛡' };
 
-const Sidebar = ({ role, activeTab, setActiveTab, onLogout }) => (
+const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
   <div className="sidebar" style={{ width: 230, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
     <div style={{ marginBottom: 32 }}>
       <span className="playfair gold-text" style={{ fontSize: 20, fontWeight: 700 }}>PrimeVenda</span>
       <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(201,168,76,.06)', border: '1px solid rgba(201,168,76,.12)', borderRadius: 12, padding: '10px 12px' }}>
-        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{ROLE_ICON[role]}</div>
+        {user?.profileImage ? (
+          <img src={user.profileImage} alt="Avatar" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{ROLE_ICON[role]}</div>
+        )}
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1 }}>Demo User</p>
-          <p style={{ fontSize: 11, color: 'var(--gold)', marginTop: 2 }}>{ROLE_LABEL[role]}</p>
+          <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1 }}>{user?.name || 'Usuário'}</p>
+          <p style={{ fontSize: 11, color: 'var(--gold)', marginTop: 2 }}>{user?.email || ''}</p>
         </div>
       </div>
     </div>
@@ -315,34 +323,170 @@ const MinhasComprasTab = () => {
   );
 };
 
-const PerfilTab = ({ role }) => (
-  <div className="fade-up" style={{ maxWidth: 600 }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 32 }}>
-      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>{ROLE_ICON[role]}</div>
-      <div>
-        <h2 className="playfair" style={{ fontSize: 20, fontWeight: 600 }}>Demo User</h2>
-        <p style={{ color: 'var(--muted)', fontSize: 14 }}>demo@primevenda.com</p>
-        <span className="badge badge-gold" style={{ marginTop: 6 }}>{ROLE_LABEL[role]}</span>
-      </div>
-    </div>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {[['Nome completo', 'Demo User'], ['E-mail', 'demo@primevenda.com'], ['Telefone', '(11) 99999-0000'], ['CPF', '000.000.000-00'], ['Endereço', 'Rua Exemplo, 123 – São Paulo, SP']].map(([label, val]) => (
-        <div key={label}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>{label}</label>
-          <input className="inp" defaultValue={val} />
+const PerfilTab = ({ role, user, onUserUpdate }) => {
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    cpfCnpj: user?.cpfCnpj || '',
+    company: user?.company || '',
+    creci: user?.creci || '',
+    website: user?.website || '',
+    profileImage: user?.profileImage || '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      cpfCnpj: user?.cpfCnpj || '',
+      company: user?.company || '',
+      creci: user?.creci || '',
+      website: user?.website || '',
+      profileImage: user?.profileImage || ''
+    }));
+  }, [user]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((prev) => ({ ...prev, profileImage: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    if (form.password && form.password !== form.confirmPassword) {
+      return setError('As senhas não coincidem.');
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        cpfCnpj: form.cpfCnpj,
+        company: form.company,
+        creci: form.creci,
+        website: form.website,
+        profileImage: form.profileImage
+      };
+      if (form.password) payload.password = form.password;
+
+      const response = await updateCurrentUser(payload);
+      onUserUpdate(response.data);
+      setForm((prev) => ({ ...prev, password: '', confirmPassword: '' }));
+      setMessage('Perfil atualizado com sucesso.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao atualizar perfil');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fade-up" style={{ maxWidth: 720 }}>
+      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 8 }}>
+          <div style={{ width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', background: 'var(--border)' }}>
+            {form.profileImage ? (
+              <img src={form.profileImage} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: 'var(--gold)' }}>{ROLE_ICON[role]}</div>
+            )}
+          </div>
+          <div>
+            <h2 className="playfair" style={{ fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{user?.name || 'Meu Perfil'}</h2>
+            <p style={{ color: 'var(--muted)', fontSize: 14 }}>{user?.email}</p>
+            <span className="badge badge-gold" style={{ marginTop: 6 }}>{ROLE_LABEL[role]}</span>
+          </div>
         </div>
-      ))}
-      <div style={{ marginTop: 8 }}>
-        <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 8, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Alterar senha</label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <input className="inp" type="password" placeholder="Nova senha" />
-          <input className="inp" type="password" placeholder="Confirmar" />
+
+        {error && <div className="alert alert-error">{error}</div>}
+        {message && <div className="alert alert-success">{message}</div>}
+
+        <div style={{ display: 'grid', gap: 18 }}>
+          <div style={{ display: 'grid', gap: 12 }}>
+            <label className="form-label">Foto de perfil</label>
+            <input type="file" accept="image/*" onChange={handleImageChange} disabled={loading} />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Nome completo</label>
+              <input name="name" value={form.name} onChange={handleChange} className="form-input" disabled={loading} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">E-mail</label>
+              <input name="email" type="email" value={form.email} onChange={handleChange} className="form-input" disabled={loading} />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Telefone</label>
+              <input name="phone" value={form.phone} onChange={handleChange} className="form-input" disabled={loading} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">CPF/CNPJ</label>
+              <input name="cpfCnpj" value={form.cpfCnpj} onChange={handleChange} className="form-input" disabled={loading} />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Empresa / Corretor</label>
+              <input name="company" value={form.company} onChange={handleChange} className="form-input" disabled={loading} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">CRECI</label>
+              <input name="creci" value={form.creci} onChange={handleChange} className="form-input" disabled={loading} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Website / Redes sociais</label>
+            <input name="website" value={form.website} onChange={handleChange} className="form-input" disabled={loading} />
+          </div>
+
+          <div style={{ display: 'grid', gap: 12 }}>
+            <label className="form-label">Alterar senha</label>
+            <div className="form-row">
+              <div className="form-group">
+                <input name="password" type="password" value={form.password} onChange={handleChange} className="form-input" placeholder="Nova senha" disabled={loading} />
+              </div>
+              <div className="form-group">
+                <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} className="form-input" placeholder="Confirmar senha" disabled={loading} />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" className="btn-gold" style={{ padding: '12px 32px', width: 'fit-content' }} disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar perfil'}
+          </button>
         </div>
-      </div>
-      <button className="btn-gold" style={{ marginTop: 8, alignSelf: 'flex-start', padding: '12px 32px' }}>Salvar alterações</button>
+      </form>
     </div>
-  </div>
-);
+  );
+};
 
 const StatCard = ({ icon, label, value, delta, color = 'var(--gold)' }) => (
   <div className="stat-card">
@@ -412,7 +556,45 @@ const PainelVendedorTab = () => (
 );
 
 const MeusAnunciosTab = () => {
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  const loadProperties = async () => {
+    try {
+      const response = await getMyProperties();
+      setProperties(response.data);
+    } catch (err) {
+      setError('Erro ao carregar seus anúncios');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Tem certeza que deseja deletar este anúncio?')) return;
+    try {
+      await deleteProperty(id);
+      setProperties((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      alert('Erro ao deletar anúncio');
+    }
+  };
+
+  if (loading) {
+    return <div className="fade-up"><p>Carregando seus anúncios...</p></div>;
+  }
+
+  if (error) {
+    return <div className="fade-up"><p className="error">{error}</p></div>;
+  }
+
   return (
     <div className="fade-up">
       {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
@@ -429,26 +611,26 @@ const MeusAnunciosTab = () => {
             </tr>
           </thead>
           <tbody>
-            {ALL_LISTINGS.map((item) => (
-              <tr key={item.id} style={{ cursor: 'pointer' }}>
+            {properties.map((property) => (
+              <tr key={property.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <img src={item.image} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
+                    <img src={property.image || 'https://via.placeholder.com/80'} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
                     <div>
-                      <p style={{ fontWeight: 500, fontSize: 13 }}>{item.title}</p>
-                      <p style={{ fontSize: 11, color: 'var(--muted)' }}>{item.category}</p>
+                      <p style={{ fontWeight: 500, fontSize: 13 }}>{property.title}</p>
+                      <p style={{ fontSize: 11, color: 'var(--muted)' }}>{property.type}</p>
                     </div>
                   </div>
                 </td>
-                <td><span className="chip">{item.type === 'imovel' ? '🏠 Imóvel' : '🚗 Veículo'}</span></td>
-                <td style={{ fontWeight: 600, color: 'var(--gold)' }}>{fmt(item.price)}</td>
-                <td style={{ fontSize: 13, color: 'var(--muted)' }}>{item.location}</td>
-                <td><StatusBadge status={item.status} /></td>
+                <td><span className="chip">{property.type}</span></td>
+                <td style={{ fontWeight: 600, color: 'var(--gold)' }}>{fmt(property.price)}</td>
+                <td style={{ fontSize: 13, color: 'var(--muted)' }}>{property.city}</td>
+                <td><StatusBadge status={property.status} /></td>
                 <td>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => setSelected(item)}>Ver</button>
-                    <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }}><Ic name="edit" size={12} /></button>
-                    <button className="btn-danger" style={{ padding: '6px 12px' }}><Ic name="trash" size={12} /></button>
+                    <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => setSelected(property)}>Ver</button>
+                    <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => navigate(`/properties/edit/${property.id}`)}><Ic name="edit" size={12} /></button>
+                    <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={() => handleDelete(property.id)}><Ic name="trash" size={12} /></button>
                   </div>
                 </td>
               </tr>
@@ -462,6 +644,8 @@ const MeusAnunciosTab = () => {
 
 const NovoAnuncioTab = () => {
   const [tipo, setTipo] = useState('imovel');
+  const navigate = useNavigate();
+
   return (
     <div className="fade-up" style={{ maxWidth: 680 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 28 }}>
@@ -469,25 +653,22 @@ const NovoAnuncioTab = () => {
           <button key={v} onClick={() => setTipo(v)} style={{ padding: '12px 20px', border: `1.5px solid ${tipo === v ? 'var(--gold)' : 'var(--border)'}`, borderRadius: 10, background: tipo === v ? 'rgba(201,168,76,.1)' : 'transparent', color: tipo === v ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'all .2s' }}>{l}</button>
         ))}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Título do anúncio</label>
-          <input className="inp" placeholder={tipo === 'imovel' ? 'Casa moderna com piscina...' : 'BMW X5 2024 impecável...'} />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Categoria</label>
-            <select className="inp">
-              {tipo === 'imovel' ? ['Casa', 'Apartamento', 'Cobertura', 'Terreno', 'Comercial'].map((v) => <option key={v}>{v}</option>) : ['Sedan', 'SUV', 'Hatch', 'Pickup', 'Esportivo', 'Moto'].map((v) => <option key={v}>{v}</option>)}
-            </select>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
+        <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 16 }}>Use a página de cadastro para publicar seu novo anúncio.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 220 }}>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Tipo selecionado</div>
+            <strong>{tipo === 'imovel' ? 'Imóvel' : 'Veículo'}</strong>
           </div>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Preço (R$)</label>
-            <input className="inp" placeholder="500000" type="number" />
-          </div>
+          <button className="btn-gold" style={{ padding: '13px 28px' }} onClick={() => navigate('/properties/new')}>
+            Criar novo anúncio
+          </button>
         </div>
-        {tipo === 'imovel' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+      </div>
+    </div>
+  );
+};
             <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Quartos</label><input className="inp" type="number" placeholder="3" /></div>
             <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Banheiros</label><input className="inp" type="number" placeholder="2" /></div>
             <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Área (m²)</label><input className="inp" type="number" placeholder="120" /></div>
@@ -524,52 +705,129 @@ const NovoAnuncioTab = () => {
   );
 };
 
-const ConfiguracoesSeller = () => (
-  <div className="fade-up" style={{ maxWidth: 620 }}>
-    {[
-      { title: 'Perfil do vendedor', items: [['Nome da empresa / Corretor', 'Carlos Mendes Imóveis'], ['CRECI', '123456-SP'], ['Telefone de contato', '(11) 98888-1234'], ['WhatsApp', '(11) 98888-1234'], ['Site / Instagram', '@carlosmendesimov']] },
-      { title: 'Configurações de anúncio', isSelect: true, items: [['Validade padrão dos anúncios', '30 dias', '60 dias', '90 dias'], ['Destaque automático', 'Sim', 'Não'], ['Resposta automática de contato', 'Ativada', 'Desativada']] },
-      { title: 'Notificações', isToggle: true, items: ['Novo contato por anúncio', 'Proposta recebida', 'Anúncio expirando', 'Resumo semanal por e-mail'] }
-    ].map((section) => (
-      <div key={section.title} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>{section.title}</h3>
-        {section.isToggle ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {section.items.map((item) => (
-              <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 14 }}>{item}</span>
-                <div style={{ width: 44, height: 24, background: 'var(--gold)', borderRadius: 12, position: 'relative', cursor: 'pointer' }}>
-                  <div style={{ position: 'absolute', right: 3, top: 3, width: 18, height: 18, borderRadius: '50%', background: '#0c0e13' }} />
-                </div>
-              </div>
-            ))}
+const ConfiguracoesSeller = () => {
+  const [settings, setSettings] = useState(() => {
+    return JSON.parse(localStorage.getItem('sellerSettings')) || {
+      company: 'Minha Imobiliária',
+      creci: '000000-SP',
+      phone: '',
+      whatsapp: '',
+      website: '',
+      adDuration: '30 dias',
+      autoHighlight: 'Sim',
+      autoReply: 'Ativada',
+      notifications: {
+        contact: true,
+        proposal: true,
+        expiring: true,
+        weeklySummary: false,
+      }
+    };
+  });
+  const [message, setMessage] = useState('');
+
+  const handleChange = (field, value) => {
+    setSettings((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleToggle = (field) => {
+    setSettings((prev) => ({
+      ...prev,
+      notifications: {
+        ...prev.notifications,
+        [field]: !prev.notifications[field]
+      }
+    }));
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem('sellerSettings', JSON.stringify(settings));
+    setMessage('Configurações salvas com sucesso.');
+  };
+
+  return (
+    <div className="fade-up" style={{ maxWidth: 620 }}>
+      {message && <div className="alert alert-success">{message}</div>}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Perfil do vendedor</h3>
+        <div style={{ display: 'grid', gap: 14 }}>
+          <div>
+            <label className="form-label">Nome da empresa / Corretor</label>
+            <input className="inp" value={settings.company} onChange={(e) => handleChange('company', e.target.value)} />
           </div>
-        ) : section.isSelect ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {section.items.map(([label, ...opts]) => (
-              <div key={label}>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>{label}</label>
-                <select className="inp" style={{ width: '100%' }}>
-                  {opts.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div>
+              <label className="form-label">CRECI</label>
+              <input className="inp" value={settings.creci} onChange={(e) => handleChange('creci', e.target.value)} />
+            </div>
+            <div>
+              <label className="form-label">Telefone de contato</label>
+              <input className="inp" value={settings.phone} onChange={(e) => handleChange('phone', e.target.value)} />
+            </div>
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {section.items.map(([label, val]) => (
-              <div key={label}>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>{label}</label>
-                <input className="inp" defaultValue={val} />
-              </div>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div>
+              <label className="form-label">WhatsApp</label>
+              <input className="inp" value={settings.whatsapp} onChange={(e) => handleChange('whatsapp', e.target.value)} />
+            </div>
+            <div>
+              <label className="form-label">Site / Instagram</label>
+              <input className="inp" value={settings.website} onChange={(e) => handleChange('website', e.target.value)} />
+            </div>
           </div>
-        )}
+        </div>
       </div>
-    ))}
-    <button className="btn-gold" style={{ padding: '13px 32px' }}>Salvar configurações</button>
-  </div>
-);
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Configurações de anúncio</h3>
+        <div style={{ display: 'grid', gap: 14 }}>
+          <div>
+            <label className="form-label">Validade padrão dos anúncios</label>
+            <select className="inp" value={settings.adDuration} onChange={(e) => handleChange('adDuration', e.target.value)}>
+              {['30 dias', '60 dias', '90 dias'].map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div>
+              <label className="form-label">Destaque automático</label>
+              <select className="inp" value={settings.autoHighlight} onChange={(e) => handleChange('autoHighlight', e.target.value)}>
+                {['Sim', 'Não'].map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Resposta automática de contato</label>
+              <select className="inp" value={settings.autoReply} onChange={(e) => handleChange('autoReply', e.target.value)}>
+                {['Ativada', 'Desativada'].map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Notificações</h3>
+        <div style={{ display: 'grid', gap: 14 }}>
+          {[
+            { label: 'Novo contato por anúncio', field: 'contact' },
+            { label: 'Proposta recebida', field: 'proposal' },
+            { label: 'Anúncio expirando', field: 'expiring' },
+            { label: 'Resumo semanal por e-mail', field: 'weeklySummary' }
+          ].map(({ label, field }) => (
+            <div key={field} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14 }}>{label}</span>
+              <label className="switch">
+                <input type="checkbox" checked={settings.notifications[field]} onChange={() => handleToggle(field)} />
+                <span className="slider" />
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button className="btn-gold" style={{ padding: '13px 32px' }} onClick={saveSettings}>Salvar configurações</button>
+    </div>
+  );
+};
 
 const PainelAdmTab = () => (
   <div className="fade-up">
@@ -778,11 +1036,11 @@ const tabTitles = {
   explorar: 'Explorar Anúncios', favoritos: 'Favoritos', 'minhas-compras': 'Minhas Compras', perfil: 'Meu Perfil', painel: 'Painel', 'meus-anuncios': 'Meus Anúncios', 'novo-anuncio': 'Novo Anúncio', configuracoes: 'Configurações', anuncios: 'Gerenciar Anúncios', usuarios: 'Gerenciar Usuários', relatorios: 'Relatórios',
 };
 
-const TabContent = ({ role, tab }) => {
+const TabContent = ({ role, tab, user, onUserUpdate }) => {
   if (tab === 'explorar') return <ExplorarTab />;
   if (tab === 'favoritos') return <FavoritosTab />;
   if (tab === 'minhas-compras') return <MinhasComprasTab />;
-  if (tab === 'perfil') return <PerfilTab role={role} />;
+  if (tab === 'perfil') return <PerfilTab role={role} user={user} onUserUpdate={onUserUpdate} />;
   if (tab === 'painel' && role === 'vendedor') return <PainelVendedorTab />;
   if (tab === 'meus-anuncios') return <MeusAnunciosTab />;
   if (tab === 'novo-anuncio') return <NovoAnuncioTab />;
@@ -825,6 +1083,11 @@ export default function DashboardPage() {
     navigate('/login');
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c0e13', color: '#e8e4dc' }}>
@@ -840,11 +1103,11 @@ export default function DashboardPage() {
     <>
       <PrimeVendaTheme />
       <div className="page-shell">
-        <Sidebar role={roleKey} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
+        <Sidebar role={roleKey} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} user={user} />
         <div className="dashboard-main">
           <Header title={tabTitles[activeTab] || 'Dashboard'} role={roleKey} />
           <div className="dashboard-content">
-            <TabContent role={roleKey} tab={activeTab} />
+            <TabContent role={roleKey} tab={activeTab} user={user} onUserUpdate={handleUserUpdate} />
           </div>
         </div>
       </div>

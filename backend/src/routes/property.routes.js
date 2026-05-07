@@ -6,11 +6,11 @@ const { roleMiddleware } = require('../middlewares/roleMiddleware');
 
 // 🟢 PÚBLICAS (qualquer um pode ver)
 router.get('/', propertyController.getAll); // Listar com filtros
-router.get('/:id', propertyController.getById); // Ver detalhes
 
 // 🔵 VENDEDOR (precisa estar autenticado e ser vendedor)
 router.post('/', authMiddleware, roleMiddleware('vendedor', 'admin'), propertyController.create); // Criar
 router.get('/vendedor/minhas', authMiddleware, roleMiddleware('vendedor'), propertyController.getByVendedor); // Suas propriedades
+router.get('/:id', propertyController.getById); // Ver detalhes
 router.put('/:id', authMiddleware, propertyController.update); // Atualizar
 router.delete('/:id', authMiddleware, propertyController.delete); // Deletar
 

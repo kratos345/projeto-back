@@ -37,9 +37,12 @@ export default function PropertiesListPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
+      case 'disponivel': return '#27ae60';
       case 'ativo': return '#27ae60';
       case 'pendente': return '#f39c12';
+      case 'negociando': return '#f39c12';
       case 'vendido': return '#3498db';
+      case 'arquivado': return '#95a5a6';
       default: return '#95a5a6';
     }
   };

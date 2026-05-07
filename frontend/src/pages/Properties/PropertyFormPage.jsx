@@ -11,7 +11,7 @@ export default function PropertyFormPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    type: 'apartamento',
+    type: 'Apartamento',
     price: '',
     bedrooms: '',
     bathrooms: '',
@@ -123,10 +123,12 @@ export default function PropertyFormPage() {
                 required
                 disabled={loading}
               >
-                <option value="apartamento">Apartamento</option>
-                <option value="casa">Casa</option>
-                <option value="terreno">Terreno</option>
-                <option value="comercial">Comercial</option>
+                <option value="Apartamento">Apartamento</option>
+                <option value="Casa">Casa</option>
+                <option value="Terreno">Terreno</option>
+                <option value="Cobertura">Cobertura</option>
+                <option value="Comercial">Comercial</option>
+                <option value="Galpão">Galpão</option>
               </select>
             </div>
 
