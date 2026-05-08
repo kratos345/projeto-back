@@ -107,7 +107,7 @@ const TAB_META = {
 const ROLE_LABEL = { usuario: 'Usuário', vendedor: 'Vendedor', adm: 'Administrador' };
 const ROLE_ICON = { usuario: '👤', vendedor: '🏪', adm: '🛡' };
 
-const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
+const Sidebar = ({ role, onLogout, user }) => (
   <div className="sidebar" style={{ width: 230, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
     <div style={{ marginBottom: 32 }}>
       <span className="playfair gold-text" style={{ fontSize: 20, fontWeight: 700 }}>PrimeVenda</span>
@@ -125,12 +125,33 @@ const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
     </div>
 
     <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-      {TABS[role].map((tab) => (
-        <div key={tab} className={`nav-item ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
-          <Ic name={TAB_META[tab].icon} size={16} />
-          {TAB_META[tab].label}
-        </div>
-      ))}
+      {/* Abas baseadas no role */}
+      {role === 'usuario' && (
+        <>
+          <div className="nav-item active">Explorar Anúncios</div>
+          <div className="nav-item">Favoritos</div>
+          <div className="nav-item">Minhas Compras</div>
+          <div className="nav-item">Perfil</div>
+        </>
+      )}
+      {role === 'vendedor' && (
+        <>
+          <div className="nav-item active">Painel</div>
+          <div className="nav-item">Meus Anúncios</div>
+          <div className="nav-item">Novo Anúncio</div>
+          <div className="nav-item">Configurações</div>
+          <div className="nav-item">Perfil</div>
+        </>
+      )}
+      {role === 'adm' && (
+        <>
+          <div className="nav-item active">Painel</div>
+          <div className="nav-item">Anúncios</div>
+          <div className="nav-item">Usuários</div>
+          <div className="nav-item">Relatórios</div>
+          <div className="nav-item">Configurações</div>
+        </>
+      )}
     </nav>
 
     <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
@@ -154,106 +175,22 @@ const Header = ({ title, role }) => (
   </div>
 );
 
-const ListingCard = ({ item, onView }) => (
-  <div className="card" style={{ cursor: 'pointer' }} onClick={() => onView && onView(item)}>
-    <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
-      <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform .4s' }}
-        onMouseEnter={(e) => (e.target.style.transform = 'scale(1.06)')}
-        onMouseLeave={(e) => (e.target.style.transform = 'scale(1)')}
-      />
-      <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6 }}>
-        <span className="badge badge-muted">{item.type === 'imovel' ? '🏠' : '🚗'} {item.category}</span>
-        {item.featured && <span className="badge badge-gold">⭐ Destaque</span>}
-      </div>
-      <div style={{ position: 'absolute', top: 12, right: 12 }}>
-        <StatusBadge status={item.status} />
-      </div>
-    </div>
-    <div style={{ padding: '18px 20px' }}>
-      <p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Ic name="map" size={11} /> {item.location}
-      </p>
-      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600, marginBottom: 10, lineHeight: 1.3 }}>{item.title}</h3>
-      <p style={{ fontSize: 22, fontWeight: 700, background: 'linear-gradient(135deg,var(--gold),var(--amber))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: 12 }}>{fmt(item.price)}</p>
-      {item.type === 'imovel' ? (
-        <div style={{ display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--muted)' }}>
-          {item.beds > 0 && <span>🛏 {item.beds} quartos</span>}
-          {item.baths > 0 && <span>🚿 {item.baths} banheiros</span>}
-          <span>📐 {item.area}m²</span>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', gap: 16, fontSize: 12.5, color: 'var(--muted)' }}>
-          <span>📅 {item.year}</span>
-          <span>🛣 {item.km?.toLocaleString('pt-BR')} km</span>
-          <span>🎨 {item.color}</span>
-        </div>
-      )}
-      <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>Vendedor: <span style={{ color: 'var(--text)' }}>{item.seller}</span></span>
-        <button className="btn-gold" style={{ padding: '7px 16px', fontSize: 12 }}>Ver detalhes</button>
-      </div>
-    </div>
-  </div>
-);
-
-const ListingModal = ({ item, onClose }) => {
-  if (!item) return null;
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 20, width: '100%', maxWidth: 680, maxHeight: '90vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
-        <img src={item.image} alt={item.title} style={{ width: '100%', height: 280, objectFit: 'cover', borderRadius: '20px 20px 0 0' }} />
-        <div style={{ padding: 28 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <span className="badge badge-muted">{item.category}</span>
-                <StatusBadge status={item.status} />
-                {item.featured && <span className="badge badge-gold">⭐ Destaque</span>}
-              </div>
-              <h2 className="playfair" style={{ fontSize: 22, fontWeight: 700 }}>{item.title}</h2>
-            </div>
-            <button onClick={onClose} style={{ background: 'var(--border)', border: 'none', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: 'var(--muted)' }}>✕</button>
-          </div>
-          <p style={{ fontSize: 28, fontWeight: 700, background: 'linear-gradient(135deg,var(--gold),var(--amber))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: 12 }}>{fmt(item.price)}</p>
-          <p style={{ color: 'var(--muted)', fontSize: 13, display: 'flex', gap: 6, marginBottom: 18 }}><Ic name="map" size={14} /> {item.location}</p>
-          <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>{item.description}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px,1fr))', gap: 12, marginBottom: 24 }}>
-            {item.type === 'imovel' ? (
-              <>
-                {item.beds > 0 && <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>🛏</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.beds} quartos</div></div>}
-                {item.baths > 0 && <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>🚿</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.baths} banheiros</div></div>}
-                <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>📐</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.area}m²</div></div>
-              </>
-            ) : (
-              <>
-                <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>📅</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.year}</div></div>
-                <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>🛣</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.km?.toLocaleString('pt-BR')} km</div></div>
-                <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>🎨</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.color}</div></div>
-              </>
-            )}
-          </div>
-          <div style={{ background: 'var(--surface)', borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <p style={{ fontSize: 11, color: 'var(--muted)' }}>Anunciado por</p>
-              <p style={{ fontWeight: 600 }}>{item.seller}</p>
-            </div>
-            <button className="btn-gold">Entrar em contato</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ExplorarTab = () => {
-  const [filter, setFilter] = useState('todos');
+// Componente para Usuário
+const UsuarioDashboard = ({ user, onUserUpdate }) => {
   const [selected, setSelected] = useState(null);
-  const filtered = filter === 'todos' ? ALL_LISTINGS : ALL_LISTINGS.filter((i) => i.type === filter);
 
   return (
     <div className="fade-up">
       {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      
+      {/* Boas-vindas */}
+      <div style={{ marginBottom: 32 }}>
+        <h2 className="playfair" style={{ fontSize: 24, marginBottom: 8 }}>Olá, {user?.name || 'Usuário'}!</h2>
+        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Explore imóveis e veículos disponíveis na plataforma.</p>
+      </div>
+
+      {/* Barra de busca */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px', marginBottom: 24 }}>
         <input className="inp" placeholder="🔍  Buscar imóveis ou veículos..." style={{ flex: 1, minWidth: 200 }} />
         <select className="inp" style={{ width: 160 }}>
           <option>Qualquer preço</option>
@@ -270,554 +207,174 @@ const ExplorarTab = () => {
         </select>
         <button className="btn-gold" style={{ whiteSpace: 'nowrap' }}>Buscar</button>
       </div>
+
+      {/* Filtros */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         {[['todos', '🔎 Todos'], ['imovel', '🏠 Imóveis'], ['veiculo', '🚗 Veículos']].map(([v, l]) => (
-          <button key={v} onClick={() => setFilter(v)} style={{ padding: '8px 18px', borderRadius: 30, border: `1.5px solid ${filter === v ? 'var(--gold)' : 'var(--border)'}`, background: filter === v ? 'rgba(201,168,76,.1)' : 'transparent', color: filter === v ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: 13, fontWeight: 500, transition: 'all .2s' }}>{l}</button>
+          <button key={v} style={{ padding: '8px 18px', borderRadius: 30, border: `1.5px solid var(--gold)`, background: 'rgba(201,168,76,.1)', color: 'var(--gold)', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>{l}</button>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px,1fr))', gap: 20 }}>
-        {filtered.map((item) => <ListingCard key={item.id} item={item} onView={setSelected} />)}
-      </div>
-    </div>
-  );
-};
 
-const FavoritosTab = () => {
-  const favs = ALL_LISTINGS.filter((i) => i.featured);
-  const [selected, setSelected] = useState(null);
-  return (
-    <div className="fade-up">
-      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <p style={{ color: 'var(--muted)', fontSize: 14 }}>{favs.length} itens salvos</p>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px,1fr))', gap: 20 }}>
-        {favs.map((item) => <ListingCard key={item.id} item={item} onView={setSelected} />)}
-      </div>
-    </div>
-  );
-};
-
-const MinhasComprasTab = () => {
-  const vendidos = ALL_LISTINGS.filter((i) => i.status === 'vendido');
-  const [selected, setSelected] = useState(null);
-  return (
-    <div className="fade-up">
-      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
-      <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 24 }}>{vendidos.length} compra(s) registrada(s)</p>
-      {vendidos.map((item) => (
-        <div key={item.id} className="card" style={{ marginBottom: 16, display: 'flex', overflow: 'hidden' }}>
-          <img src={item.image} alt="" style={{ width: 160, objectFit: 'cover' }} />
-          <div style={{ padding: 20, flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span className="badge badge-muted">{item.category}</span>
-              <StatusBadge status={item.status} />
-            </div>
-            <h3 className="playfair" style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{item.title}</h3>
-            <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--gold)', marginBottom: 8 }}>{fmt(item.price)}</p>
-            <p style={{ fontSize: 12, color: 'var(--muted)' }}>{item.location}</p>
-            <button className="btn-ghost" style={{ marginTop: 12, padding: '7px 16px', fontSize: 12 }} onClick={() => setSelected(item)}>Ver comprovante</button>
-          </div>
+      {/* Anúncios em destaque */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Anúncios em Destaque</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px,1fr))', gap: 20 }}>
+          {ALL_LISTINGS.filter(i => i.featured).slice(0, 6).map((item) => <ListingCard key={item.id} item={item} onView={setSelected} />)}
         </div>
-      ))}
+      </div>
+
+      {/* Perfil rápido */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Meu Perfil</h3>
+        <PerfilTab role="usuario" user={user} onUserUpdate={onUserUpdate} />
+      </div>
     </div>
   );
 };
 
-const PerfilTab = ({ role, user, onUserUpdate }) => {
-  const [form, setForm] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    cpfCnpj: user?.cpfCnpj || '',
-    company: user?.company || '',
-    creci: user?.creci || '',
-    website: user?.website || '',
-    profileImage: user?.profileImage || '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    setForm((prev) => ({
-      ...prev,
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      cpfCnpj: user?.cpfCnpj || '',
-      company: user?.company || '',
-      creci: user?.creci || '',
-      website: user?.website || '',
-      profileImage: user?.profileImage || ''
-    }));
-  }, [user]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((prev) => ({ ...prev, profileImage: reader.result }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    if (form.password && form.password !== form.confirmPassword) {
-      return setError('As senhas não coincidem.');
-    }
-
-    setLoading(true);
-    try {
-      const payload = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        cpfCnpj: form.cpfCnpj,
-        company: form.company,
-        creci: form.creci,
-        website: form.website,
-        profileImage: form.profileImage
-      };
-      if (form.password) payload.password = form.password;
-
-      const response = await updateCurrentUser(payload);
-      onUserUpdate(response.data);
-      setForm((prev) => ({ ...prev, password: '', confirmPassword: '' }));
-      setMessage('Perfil atualizado com sucesso.');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao atualizar perfil');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fade-up" style={{ maxWidth: 720 }}>
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 8 }}>
-          <div style={{ width: 96, height: 96, borderRadius: '50%', overflow: 'hidden', background: 'var(--border)' }}>
-            {form.profileImage ? (
-              <img src={form.profileImage} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: 'var(--gold)' }}>{ROLE_ICON[role]}</div>
-            )}
-          </div>
-          <div>
-            <h2 className="playfair" style={{ fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{user?.name || 'Meu Perfil'}</h2>
-            <p style={{ color: 'var(--muted)', fontSize: 14 }}>{user?.email}</p>
-            <span className="badge badge-gold" style={{ marginTop: 6 }}>{ROLE_LABEL[role]}</span>
-          </div>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
-        {message && <div className="alert alert-success">{message}</div>}
-
-        <div style={{ display: 'grid', gap: 18 }}>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <label className="form-label">Foto de perfil</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} disabled={loading} />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Nome completo</label>
-              <input name="name" value={form.name} onChange={handleChange} className="form-input" disabled={loading} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">E-mail</label>
-              <input name="email" type="email" value={form.email} onChange={handleChange} className="form-input" disabled={loading} />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Telefone</label>
-              <input name="phone" value={form.phone} onChange={handleChange} className="form-input" disabled={loading} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">CPF/CNPJ</label>
-              <input name="cpfCnpj" value={form.cpfCnpj} onChange={handleChange} className="form-input" disabled={loading} />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Empresa / Corretor</label>
-              <input name="company" value={form.company} onChange={handleChange} className="form-input" disabled={loading} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">CRECI</label>
-              <input name="creci" value={form.creci} onChange={handleChange} className="form-input" disabled={loading} />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Website / Redes sociais</label>
-            <input name="website" value={form.website} onChange={handleChange} className="form-input" disabled={loading} />
-          </div>
-
-          <div style={{ display: 'grid', gap: 12 }}>
-            <label className="form-label">Alterar senha</label>
-            <div className="form-row">
-              <div className="form-group">
-                <input name="password" type="password" value={form.password} onChange={handleChange} className="form-input" placeholder="Nova senha" disabled={loading} />
-              </div>
-              <div className="form-group">
-                <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} className="form-input" placeholder="Confirmar senha" disabled={loading} />
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" className="btn-gold" style={{ padding: '12px 32px', width: 'fit-content' }} disabled={loading}>
-            {loading ? 'Salvando...' : 'Salvar perfil'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-const StatCard = ({ icon, label, value, delta, color = 'var(--gold)' }) => (
-  <div className="stat-card">
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <div>
-        <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8, fontWeight: 500 }}>{label}</p>
-        <p style={{ fontSize: 26, fontWeight: 700, color }}>{value}</p>
-        {delta && <p style={{ fontSize: 12, color: delta > 0 ? 'var(--green)' : 'var(--red)', marginTop: 4 }}>{delta > 0 ? '▲' : '▼'} {Math.abs(delta)}% vs. mês ant.</p>}
-      </div>
-      <div style={{ background: `${color}18`, borderRadius: 10, padding: 10 }}>
-        <Ic name={icon} size={20} color={color} />
-      </div>
-    </div>
-  </div>
-);
-
-const PainelVendedorTab = () => {
+// Componente para Vendedor
+const VendedorDashboard = ({ user, onUserUpdate }) => {
   const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const response = await getSellerMetrics();
-        setMetrics(response.data);
-      } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Erro ao carregar métricas do vendedor');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  if (loading) return <div className="fade-up"><p>Carregando métricas...</p></div>;
-  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
-
-  return (
-    <div className="fade-up">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
-        <StatCard icon="tag" label="Anúncios totais" value={metrics.properties.total || 0} delta={metrics.properties.active ? 12 : 0} />
-        <StatCard icon="users" label="Leads recebidos" value={metrics.leads.total || 0} delta={0} color="var(--blue)" />
-        <StatCard icon="eye" label="Visualizações totais" value={metrics.stats.totalViews || 0} delta={0} color="var(--green)" />
-        <StatCard icon="chart" label="Anúncios ativos" value={metrics.properties.active || 0} delta={0} color="var(--amber)" />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 28 }}>
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Status dos leads</h3>
-          {metrics.leads.perStatus?.length > 0 ? metrics.leads.perStatus.map((item) => (
-            <div key={item.status} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: 13 }}>{item.status}</span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{item.count}</span>
-            </div>
-          )) : <p style={{ color: 'var(--muted)' }}>Nenhum lead registrado ainda.</p>}
-        </div>
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Resumo</h3>
-          <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Você possui {metrics.properties.total || 0} anúncios no sistema.</p>
-          <p style={{ fontSize: 13, color: 'var(--muted)' }}>Ativos: {metrics.properties.active || 0}</p>
-          <p style={{ fontSize: 13, color: 'var(--muted)' }}>Vencidos/pendentes: {(metrics.properties.total || 0) - (metrics.properties.active || 0)}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const MeusAnunciosTab = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadProperties();
+    loadData();
   }, []);
 
-  const loadProperties = async () => {
+  const loadData = async () => {
     try {
-      const response = await getMyProperties();
-      setProperties(response.data);
+      const [metricsRes, propsRes] = await Promise.all([
+        getSellerMetrics(),
+        getMyProperties()
+      ]);
+      setMetrics(metricsRes.data);
+      setProperties(propsRes.data.slice(0, 5)); // Últimos 5 anúncios
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Erro ao carregar seus anúncios');
+      setError('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Tem certeza que deseja deletar este anúncio?')) return;
-    try {
-      await deleteProperty(id);
-      setProperties((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
-      alert('Erro ao deletar anúncio');
-    }
-  };
-
-  if (loading) {
-    return <div className="fade-up"><p>Carregando seus anúncios...</p></div>;
-  }
-
-  if (error) {
-    return <div className="fade-up"><p className="error">{error}</p></div>;
-  }
-
-  return (
-    <div className="fade-up">
-      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>Anúncio</th>
-              <th>Tipo</th>
-              <th>Preço</th>
-              <th>Local</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {properties.map((property) => (
-              <tr key={property.id}>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <img src={property.image || 'https://via.placeholder.com/80'} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
-                    <div>
-                      <p style={{ fontWeight: 500, fontSize: 13 }}>{property.title}</p>
-                      <p style={{ fontSize: 11, color: 'var(--muted)' }}>{property.type}</p>
-                    </div>
-                  </div>
-                </td>
-                <td><span className="chip">{property.type}</span></td>
-                <td style={{ fontWeight: 600, color: 'var(--gold)' }}>{fmt(property.price)}</td>
-                <td style={{ fontSize: 13, color: 'var(--muted)' }}>{property.city}</td>
-                <td><StatusBadge status={property.status} /></td>
-                <td>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => setSelected(property)}>Ver</button>
-                    <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => navigate(`/properties/edit/${property.id}`)}><Ic name="edit" size={12} /></button>
-                    <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={() => handleDelete(property.id)}><Ic name="trash" size={12} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-const NovoAnuncioTab = () => {
-  const [tipo, setTipo] = useState('imovel');
-  const navigate = useNavigate();
-
-  return (
-    <div className="fade-up" style={{ maxWidth: 680 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 28 }}>
-        {[['imovel', '🏠 Imóvel'], ['veiculo', '🚗 Veículo']].map(([v, l]) => (
-          <button key={v} onClick={() => setTipo(v)} style={{ padding: '12px 20px', border: `1.5px solid ${tipo === v ? 'var(--gold)' : 'var(--border)'}`, borderRadius: 10, background: tipo === v ? 'rgba(201,168,76,.1)' : 'transparent', color: tipo === v ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', fontSize: 14, fontWeight: 600, transition: 'all .2s' }}>{l}</button>
-        ))}
-      </div>
-
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
-        <p style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 16 }}>Use a página de cadastro para publicar seu novo anúncio.</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ minWidth: 220 }}>
-            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Tipo selecionado</div>
-            <strong>{tipo === 'imovel' ? 'Imóvel' : 'Veículo'}</strong>
-          </div>
-          <button className="btn-gold" style={{ padding: '13px 28px' }} onClick={() => navigate('/properties/new')}>
-            Criar novo anúncio
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ConfiguracoesSeller = () => {
-  const [settings, setSettings] = useState(() => {
-    return JSON.parse(localStorage.getItem('sellerSettings')) || {
-      company: 'Minha Imobiliária',
-      creci: '000000-SP',
-      phone: '',
-      whatsapp: '',
-      website: '',
-      adDuration: '30 dias',
-      autoHighlight: 'Sim',
-      autoReply: 'Ativada',
-      notifications: {
-        contact: true,
-        proposal: true,
-        expiring: true,
-        weeklySummary: false,
-      }
-    };
-  });
-  const [message, setMessage] = useState('');
-
-  const handleChange = (field, value) => {
-    setSettings((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleToggle = (field) => {
-    setSettings((prev) => ({
-      ...prev,
-      notifications: {
-        ...prev.notifications,
-        [field]: !prev.notifications[field]
-      }
-    }));
-  };
-
-  const saveSettings = () => {
-    localStorage.setItem('sellerSettings', JSON.stringify(settings));
-    setMessage('Configurações salvas com sucesso.');
-  };
-
-  return (
-    <div className="fade-up" style={{ maxWidth: 620 }}>
-      {message && <div className="alert alert-success">{message}</div>}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Perfil do vendedor</h3>
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div>
-            <label className="form-label">Nome da empresa / Corretor</label>
-            <input className="inp" value={settings.company} onChange={(e) => handleChange('company', e.target.value)} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div>
-              <label className="form-label">CRECI</label>
-              <input className="inp" value={settings.creci} onChange={(e) => handleChange('creci', e.target.value)} />
-            </div>
-            <div>
-              <label className="form-label">Telefone de contato</label>
-              <input className="inp" value={settings.phone} onChange={(e) => handleChange('phone', e.target.value)} />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div>
-              <label className="form-label">WhatsApp</label>
-              <input className="inp" value={settings.whatsapp} onChange={(e) => handleChange('whatsapp', e.target.value)} />
-            </div>
-            <div>
-              <label className="form-label">Site / Instagram</label>
-              <input className="inp" value={settings.website} onChange={(e) => handleChange('website', e.target.value)} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Configurações de anúncio</h3>
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div>
-            <label className="form-label">Validade padrão dos anúncios</label>
-            <select className="inp" value={settings.adDuration} onChange={(e) => handleChange('adDuration', e.target.value)}>
-              {['30 dias', '60 dias', '90 dias'].map((option) => <option key={option} value={option}>{option}</option>)}
-            </select>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div>
-              <label className="form-label">Destaque automático</label>
-              <select className="inp" value={settings.autoHighlight} onChange={(e) => handleChange('autoHighlight', e.target.value)}>
-                {['Sim', 'Não'].map((option) => <option key={option} value={option}>{option}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="form-label">Resposta automática de contato</label>
-              <select className="inp" value={settings.autoReply} onChange={(e) => handleChange('autoReply', e.target.value)}>
-                {['Ativada', 'Desativada'].map((option) => <option key={option} value={option}>{option}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18 }}>Notificações</h3>
-        <div style={{ display: 'grid', gap: 14 }}>
-          {[
-            { label: 'Novo contato por anúncio', field: 'contact' },
-            { label: 'Proposta recebida', field: 'proposal' },
-            { label: 'Anúncio expirando', field: 'expiring' },
-            { label: 'Resumo semanal por e-mail', field: 'weeklySummary' }
-          ].map(({ label, field }) => (
-            <div key={field} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 14 }}>{label}</span>
-              <label className="switch">
-                <input type="checkbox" checked={settings.notifications[field]} onChange={() => handleToggle(field)} />
-                <span className="slider" />
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <button className="btn-gold" style={{ padding: '13px 32px' }} onClick={saveSettings}>Salvar configurações</button>
-    </div>
-  );
-};
-
-const PainelAdmTab = () => {
-  const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const response = await getAdminMetrics();
-        setMetrics(response.data);
-      } catch (err) {
-        setError('Erro ao carregar métricas do admin');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  if (loading) return <div className="fade-up"><p>Carregando métricas...</p></div>;
+  if (loading) return <div className="fade-up"><p>Carregando dados do vendedor...</p></div>;
   if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
 
   return (
     <div className="fade-up">
+      {/* Boas-vindas */}
+      <div style={{ marginBottom: 32 }}>
+        <h2 className="playfair" style={{ fontSize: 24, marginBottom: 8 }}>Bem-vindo, {user?.name || 'Vendedor'}!</h2>
+        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Gerencie seus anúncios e acompanhe seu desempenho.</p>
+      </div>
+
+      {/* Métricas rápidas */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
+        <StatCard icon="tag" label="Anúncios totais" value={metrics.properties.total || 0} delta={metrics.properties.active ? 12 : 0} />
+        <StatCard icon="users" label="Leads recebidos" value={metrics.leads.total || 0} delta={0} color="var(--blue)" />
+        <StatCard icon="eye" label="Visualizações" value={metrics.stats.totalViews || 0} delta={0} color="var(--green)" />
+        <StatCard icon="chart" label="Anúncios ativos" value={metrics.properties.active || 0} delta={0} color="var(--amber)" />
+      </div>
+
+      {/* Ações rápidas */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
+        <button className="btn-gold" onClick={() => navigate('/properties/new')}>➕ Novo Anúncio</button>
+        <button className="btn-secondary" onClick={() => navigate('/properties/my')}>📋 Ver Todos os Anúncios</button>
+        <button className="btn-secondary" onClick={() => navigate('/leads')}>💬 Ver Leads</button>
+      </div>
+
+      {/* Últimos anúncios */}
+      <div style={{ marginBottom: 32 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Seus Últimos Anúncios</h3>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Anúncio</th>
+                <th>Preço</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {properties.map((property) => (
+                <tr key={property.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <img src={property.image || 'https://via.placeholder.com/80'} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
+                      <div>
+                        <p style={{ fontWeight: 500, fontSize: 13 }}>{property.title}</p>
+                        <p style={{ fontSize: 11, color: 'var(--muted)' }}>{property.type}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ fontWeight: 600, color: 'var(--gold)' }}>{fmt(property.price)}</td>
+                  <td><StatusBadge status={property.status} /></td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => navigate(`/properties/edit/${property.id}`)}><Ic name="edit" size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Perfil e configurações */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Perfil e Configurações</h3>
+        <PerfilTab role="vendedor" user={user} onUserUpdate={onUserUpdate} />
+      </div>
+    </div>
+  );
+};
+
+// Componente para Admin
+const AdminDashboard = ({ user, onUserUpdate }) => {
+  const [metrics, setMetrics] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [metricsRes, propsRes, usersRes] = await Promise.all([
+        getAdminMetrics(),
+        getProperties(),
+        getUsers()
+      ]);
+      setMetrics(metricsRes.data);
+      setProperties(propsRes.data.slice(0, 5)); // Últimos 5 anúncios
+      setUsers(usersRes.data.slice(0, 5)); // Últimos 5 usuários
+    } catch (err) {
+      setError('Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="fade-up"><p>Carregando dados administrativos...</p></div>;
+  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
+
+  return (
+    <div className="fade-up">
+      {/* Boas-vindas */}
+      <div style={{ marginBottom: 32 }}>
+        <h2 className="playfair" style={{ fontSize: 24, marginBottom: 8 }}>Painel Administrativo</h2>
+        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Gerencie usuários, anúncios e configurações da plataforma.</p>
+      </div>
+
+      {/* Métricas gerais */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
         <StatCard icon="tag" label="Total de anúncios" value={metrics.properties.total || 0} delta={metrics.properties.active ? 10 : 0} />
         <StatCard icon="users" label="Vendedores" value={metrics.users.sellers || 0} delta={0} color="var(--blue)" />
@@ -825,8 +382,16 @@ const PainelAdmTab = () => {
         <StatCard icon="building" label="Admins" value={metrics.users.admins || 0} delta={0} color="var(--amber)" />
       </div>
 
+      {/* Ações rápidas */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
+        <button className="btn-gold" onClick={() => navigate('/users')}>👥 Gerenciar Usuários</button>
+        <button className="btn-secondary" onClick={() => navigate('/properties/my')}>📋 Ver Anúncios</button>
+        <button className="btn-secondary">📊 Ver Relatórios</button>
+      </div>
+
+      {/* Atividade recente */}
       <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Atividade recente</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Atividade Recente</h3>
         {[
           { icon: '🏠', msg: 'Novos anúncios disponíveis para revisão', time: 'Agora' },
           { icon: '👤', msg: 'Novos usuários foram criados hoje', time: 'Hoje' },
@@ -842,334 +407,98 @@ const PainelAdmTab = () => {
           </div>
         ))}
       </div>
-    </div>
-  );
-};
 
-const AnunciosAdmTab = () => {
-  const [properties, setProperties] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const response = await getProperties();
-        setProperties(response.data);
-      } catch (err) {
-        setError('Erro ao carregar anúncios');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  return (
-    <div className="fade-up">
-      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
-      {loading && <p>Carregando anúncios...</p>}
-      {error && <p className="error">{error}</p>}
-      {!loading && !properties.length && <p style={{ color: 'var(--muted)' }}>Nenhum anúncio encontrado.</p>}
-
-      {!loading && properties.length > 0 && (
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Anúncio</th>
-                <th>Vendedor</th>
-                <th>Tipo</th>
-                <th>Preço</th>
-                <th>Status</th>
-                <th>Destaque</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {properties.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <img src={item.image || item.images?.[0] || 'https://via.placeholder.com/40'} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>{item.title || item.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ fontSize: 13, color: 'var(--muted)' }}>{item.seller || item.user?.name || item.user?.email || '—'}</td>
-                  <td><span className="chip">{item.type === 'imovel' ? '🏠' : '🚗'}</span></td>
-                  <td style={{ fontWeight: 600, color: 'var(--gold)', fontSize: 13 }}>{fmt(item.price || item.value || 0)}</td>
-                  <td><StatusBadge status={item.status || 'pendente'} /></td>
-                  <td>{item.featured ? <span className="badge badge-gold">⭐ Sim</span> : <span className="badge badge-muted">Não</span>}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn-ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setSelected(item)}>Ver</button>
-                      <button className="btn-danger" style={{ padding: '5px 10px' }}><Ic name="trash" size={12} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const UsuariosAdmTab = () => {
-  const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const response = await getUsers();
-        setUsers(response.data);
-      } catch (err) {
-        setError('Erro ao carregar usuários');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Deseja excluir este usuário?')) return;
-    try {
-      await deleteUser(id);
-      setUsers((prev) => prev.filter((user) => user.id !== id));
-    } catch (err) {
-      setError('Erro ao excluir usuário');
-    }
-  };
-
-  return (
-    <div className="fade-up">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+      {/* Últimos usuários e anúncios */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 18 }}>Gerenciar usuários</h2>
-          <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 6 }}>Visualize e gerencie as contas cadastradas.</p>
-        </div>
-        <button type="button" className="primary-button" onClick={() => navigate('/dashboard/usuarios/novo')}>Adicionar usuário</button>
-      </div>
-
-      {loading && <p>Carregando usuários...</p>}
-      {error && <p className="error">{error}</p>}
-      {!loading && !users.length && <p style={{ color: 'var(--muted)' }}>Nenhum usuário encontrado.</p>}
-
-      {!loading && users.length > 0 && (
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Usuário</th>
-                <th>E-mail</th>
-                <th>Tipo</th>
-                <th>Status</th>
-                <th>Cadastro</th>
-                <th>Compras</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
-                        {u.role === 'vendedor' ? '🏪' : '👤'}
-                      </div>
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ fontSize: 13, color: 'var(--muted)' }}>{u.email}</td>
-                  <td><span className="badge badge-muted">{u.role === 'vendedor' ? 'Vendedor' : u.role === 'adm' ? 'Administrador' : 'Usuário'}</span></td>
-                  <td><StatusBadge status={u.isActive ? 'ativo' : 'inativo'} /></td>
-                  <td style={{ fontSize: 13, color: 'var(--muted)' }}>{new Date(u.createdAt).toLocaleDateString('pt-BR')}</td>
-                  <td style={{ fontSize: 13, textAlign: 'center' }}>{u.purchases || 0}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => navigate(`/dashboard/usuarios/${u.id}`)}>Editar</button>
-                      <button className="btn-danger" style={{ padding: '5px 10px' }} onClick={() => handleDelete(u.id)}><Ic name="trash" size={12} /></button>
-                    </div>
-                  </td>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Últimos Usuários</h3>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Usuário</th>
+                  <th>Tipo</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                          {u.role === 'vendedor' ? '🏪' : '👤'}
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</span>
+                      </div>
+                    </td>
+                    <td><span className="badge badge-muted">{u.role === 'vendedor' ? 'Vendedor' : u.role === 'adm' ? 'Administrador' : 'Usuário'}</span></td>
+                    <td><StatusBadge status={u.isActive ? 'ativo' : 'inativo'} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
+
+        <div>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Últimos Anúncios</h3>
+          <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Anúncio</th>
+                  <th>Vendedor</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {properties.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <img src={item.image || item.images?.[0] || 'https://via.placeholder.com/40'} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>{item.title || item.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ fontSize: 13, color: 'var(--muted)' }}>{item.seller || item.user?.name || item.user?.email || '—'}</td>
+                    <td><StatusBadge status={item.status || 'pendente'} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Configurações rápidas */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Configurações da Plataforma</h3>
+        <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 16 }}>Acesse as configurações completas para gerenciar regras, segurança e aparência da plataforma.</p>
+        <button className="btn-secondary">⚙️ Configurações Avançadas</button>
+      </div>
     </div>
   );
-};
-
-const RelatoriosAdmTab = () => (
-  <div className="fade-up">
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-      {[
-        { title: 'Receita por categoria', items: [['Casas', 'R$ 3,2M', 65], ['Apartamentos', 'R$ 1,8M', 45], ['SUVs', 'R$ 1,1M', 30], ['Sedans', 'R$ 0,7M', 20]] },
-        { title: 'Top vendedores', items: [['Carlos M.', 'R$ 2,1M', 85], ['Roberto F.', 'R$ 1,5M', 62], ['Ana S.', 'R$ 0,9M', 38], ['Lucia T.', 'R$ 0,6M', 25]] },
-      ].map((panel) => (
-        <div key={panel.title} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 18 }}>{panel.title}</h3>
-          {panel.items.map(([label, val, pct]) => (
-            <div key={label} style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 13 }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>{val}</span>
-              </div>
-              <div style={{ height: 5, background: 'var(--border)', borderRadius: 3 }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg,var(--gold),var(--amber))', borderRadius: 3 }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 18 }}>Resumo mensal</h3>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 120 }}>
-        {[40, 60, 45, 80, 55, 90, 70, 85, 65, 95, 75, 100].map((v, i) => (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: '100%', background: i === 11 ? 'linear-gradient(180deg,var(--gold),var(--amber))' : 'var(--border)', borderRadius: '4px 4px 0 0', height: `${v}%`, transition: 'height .3s' }} />
-            <span style={{ fontSize: 9, color: 'var(--muted)' }}>{['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-const ConfiguracoeAdm = () => {
-  const defaultSettings = {
-    companyName: 'PrimeVenda',
-    supportEmail: 'suporte@primevenda.com',
-    companyCnpj: '00.000.000/0001-00',
-    approvalMode: 'Manual',
-    maxPhotos: '10 fotos',
-    validityPeriod: '60 dias',
-    requireEmailVerification: true,
-    twoFactorAuth: false,
-    adminActivityLog: true,
-    maintenanceMode: false,
-  };
-
-  const [settings, setSettings] = useState(() => {
-    const saved = window.localStorage.getItem('primevenda-settings');
-    return saved ? JSON.parse(saved) : defaultSettings;
-  });
-
-  const handleChange = (key, value) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const saveSettings = () => {
-    window.localStorage.setItem('primevenda-settings', JSON.stringify(settings));
-    window.alert('Configurações salvas com sucesso.');
-  };
-
-  return (
-    <div className="fade-up" style={{ maxWidth: 620 }}>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>Configurações gerais da plataforma</h3>
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div>
-            <label className="label">Nome da plataforma</label>
-            <input className="inp" value={settings.companyName} onChange={(e) => handleChange('companyName', e.target.value)} />
-          </div>
-          <div>
-            <label className="label">E-mail de suporte</label>
-            <input className="inp" value={settings.supportEmail} onChange={(e) => handleChange('supportEmail', e.target.value)} />
-          </div>
-          <div>
-            <label className="label">CNPJ</label>
-            <input className="inp" value={settings.companyCnpj} onChange={(e) => handleChange('companyCnpj', e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>Regras de anúncio</h3>
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div>
-            <label className="label">Aprovação de anúncios</label>
-            <select className="inp" value={settings.approvalMode} onChange={(e) => handleChange('approvalMode', e.target.value)}>
-              <option>Manual</option>
-              <option>Automática</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Máx. fotos por anúncio</label>
-            <select className="inp" value={settings.maxPhotos} onChange={(e) => handleChange('maxPhotos', e.target.value)}>
-              <option>5 fotos</option>
-              <option>10 fotos</option>
-              <option>15 fotos</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Validade máxima</label>
-            <select className="inp" value={settings.validityPeriod} onChange={(e) => handleChange('validityPeriod', e.target.value)}>
-              <option>30 dias</option>
-              <option>60 dias</option>
-              <option>90 dias</option>
-              <option>Ilimitada</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>Segurança</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {[
-            { label: 'Verificação de e-mail obrigatória', key: 'requireEmailVerification' },
-            { label: 'Autenticação em 2 fatores (A2F)', key: 'twoFactorAuth' },
-            { label: 'Log de atividades dos admins', key: 'adminActivityLog' },
-            { label: 'Modo manutenção', key: 'maintenanceMode' },
-          ].map((item) => (
-            <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 14 }}>{item.label}</span>
-              <label className="switch">
-                <input type="checkbox" checked={settings[item.key]} onChange={(e) => handleChange(item.key, e.target.checked)} />
-                <span className="slider" />
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <button className="btn-gold" style={{ padding: '13px 32px' }} onClick={saveSettings}>Salvar configurações</button>
-    </div>
-  );
-};
-
-const tabTitles = {
-  explorar: 'Explorar Anúncios', favoritos: 'Favoritos', 'minhas-compras': 'Minhas Compras', perfil: 'Meu Perfil', painel: 'Painel', 'meus-anuncios': 'Meus Anúncios', 'novo-anuncio': 'Novo Anúncio', configuracoes: 'Configurações', anuncios: 'Gerenciar Anúncios', usuarios: 'Gerenciar Usuários', relatorios: 'Relatórios',
-};
-
-const TabContent = ({ role, tab, user, onUserUpdate }) => {
-  if (tab === 'explorar') return <ExplorarTab />;
-  if (tab === 'favoritos') return <FavoritosTab />;
-  if (tab === 'minhas-compras') return <MinhasComprasTab />;
-  if (tab === 'perfil') return <PerfilTab role={role} user={user} onUserUpdate={onUserUpdate} />;
-  if (tab === 'painel' && role === 'vendedor') return <PainelVendedorTab />;
-  if (tab === 'meus-anuncios') return <MeusAnunciosTab />;
-  if (tab === 'novo-anuncio') return <NovoAnuncioTab />;
-  if (tab === 'configuracoes' && role === 'vendedor') return <ConfiguracoesSeller />;
-  if (tab === 'painel' && role === 'adm') return <PainelAdmTab />;
-  if (tab === 'anuncios') return <AnunciosAdmTab />;
-  if (tab === 'usuarios') return <UsuariosAdmTab />;
-  if (tab === 'relatorios') return <RelatoriosAdmTab />;
-  if (tab === 'configuracoes' && role === 'adm') return <ConfiguracoeAdm />;
-  return <p style={{ color: 'var(--muted)' }}>Conteúdo em breve.</p>;
 };
 
 export default function DashboardPage() {
   const { user, setUser, loading, signout } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(null);
+
+  const normalizeRole = (role) => {
+    if (role === 'user') return 'usuario';
+    if (role === 'admin') return 'adm';
+    return role;
+  };
+
+  const roleKey = normalizeRole(user?.role);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(null);
 
