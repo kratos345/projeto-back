@@ -4,13 +4,35 @@ const User = require('../models/User');
 // 🟢 LISTAR TODAS as propriedades (com filtros)
 exports.getAll = async (req, res, next) => {
   try {
-    const { city, type, minPrice, maxPrice, bedrooms } = req.query;
+    const { city, type, minPrice, maxPrice, bedrooms, status } = req.query;
+    const Op = require('sequelize').Op;
 
-    let where = { status: 'ativo' };
+    const typeMap = {
+      apartamento: 'Apartamento',
+      casa: 'Casa',
+      cobertura: 'Cobertura',
+      terreno: 'Terreno',
+      comercial: 'Comercial',
+      galpao: 'Galpão',
+      'galpão': 'Galpão'
+    };
+
+    const statusMap = {
+      approved: 'ativo',
+      available: 'disponivel',
+      ativo: 'ativo',
+      disponivel: 'disponivel',
+      pendente: 'pendente'
+    };
+
+    const where = {
+      status: statusMap[status?.toString().toLowerCase()] || 'ativo'
+    };
+
     if (city) where.city = city;
-    if (type) where.type = type;
-    if (minPrice) where.price = { [require('sequelize').Op.gte]: minPrice };
-    if (maxPrice) where.price = { ...where.price, [require('sequelize').Op.lte]: maxPrice };
+    if (type) where.type = typeMap[type.toString().toLowerCase()] || type;
+    if (minPrice) where.price = { [Op.gte]: parseFloat(minPrice) };
+    if (maxPrice) where.price = { ...where.price, [Op.lte]: parseFloat(maxPrice) };
     if (bedrooms) where.bedrooms = bedrooms;
 
     const properties = await Property.findAll({

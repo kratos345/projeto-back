@@ -272,8 +272,8 @@ const initDB = async () => {
   try {
     defineAssociations();
 
-    // Sincroniza os modelos com o banco de dados (force: true recria tudo)
-    await sequelize.sync({ force: false });
+    // Sincroniza os modelos com o banco de dados
+    await sequelize.sync({ alter: true });
     console.log('✅ Banco de dados sincronizado com sucesso!');
     
     // Inserir usuários e dados de teste

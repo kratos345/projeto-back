@@ -515,7 +515,7 @@ const PainelVendedorTab = () => {
         const response = await getSellerMetrics();
         setMetrics(response.data);
       } catch (err) {
-        setError('Erro ao carregar métricas do vendedor');
+        setError(err.response?.data?.message || err.message || 'Erro ao carregar métricas do vendedor');
       } finally {
         setLoading(false);
       }
@@ -571,7 +571,7 @@ const MeusAnunciosTab = () => {
       const response = await getMyProperties();
       setProperties(response.data);
     } catch (err) {
-      setError('Erro ao carregar seus anúncios');
+      setError(err.response?.data?.message || err.message || 'Erro ao carregar seus anúncios');
     } finally {
       setLoading(false);
     }
@@ -1169,7 +1169,7 @@ const TabContent = ({ role, tab, user, onUserUpdate }) => {
 };
 
 export default function DashboardPage() {
-  const { user, loading, signout } = useAuth();
+  const { user, setUser, loading, signout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(null);
 

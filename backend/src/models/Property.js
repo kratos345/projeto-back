@@ -99,7 +99,7 @@ const Property = sequelize.define('Property', {
   },
 
   status: {
-    type: DataTypes.ENUM('disponivel', 'negociando', 'vendido', 'arquivado'),
+    type: DataTypes.ENUM('disponivel', 'negociando', 'vendido', 'arquivado', 'pendente', 'ativo'),
     defaultValue: 'disponivel'
   },
 

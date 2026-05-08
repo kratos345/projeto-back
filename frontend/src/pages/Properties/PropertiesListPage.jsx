@@ -18,7 +18,7 @@ export default function PropertiesListPage() {
       const response = await getMyProperties();
       setProperties(response.data);
     } catch (err) {
-      setError('Erro ao carregar imóveis');
+      setError(err.response?.data?.message || err.message || 'Erro ao carregar imóveis');
     } finally {
       setLoading(false);
     }

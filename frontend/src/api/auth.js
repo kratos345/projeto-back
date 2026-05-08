@@ -1,7 +1,7 @@
 import client from "./client";
 
 export const loginRequest = async (email, password) => {
-  const response = await client.post("/api/auth/login", {
+  const response = await client.post("/auth/login", {
     email,
     password
   });
@@ -10,6 +10,6 @@ export const loginRequest = async (email, password) => {
 };
 
 export const registerRequest = async (data) => {
-  const response = await client.post("/api/auth/register", data);
+  const response = await client.post("/auth/register", data);
   return response.data;
 };

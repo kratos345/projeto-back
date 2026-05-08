@@ -66,11 +66,23 @@ export default function PropertyFormPage() {
     setError('');
     setLoading(true);
 
+    const payload = {
+      ...form,
+      price: parseFloat(form.price) || 0,
+      bedrooms: parseInt(form.bedrooms, 10) || 0,
+      bathrooms: parseInt(form.bathrooms, 10) || 0,
+      area: parseFloat(form.area) || 0,
+      state: form.state.toUpperCase(),
+      address: form.address.trim(),
+      city: form.city.trim(),
+      zipCode: form.zipCode.trim()
+    };
+
     try {
       if (isEditing) {
-        await updateProperty(id, form);
+        await updateProperty(id, payload);
       } else {
-        await createProperty(form);
+        await createProperty(payload);
       }
 
       navigate('/properties/my');
@@ -220,6 +232,7 @@ export default function PropertyFormPage() {
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Rua das Flores, 123"
+                required
                 disabled={loading}
               />
             </div>
@@ -240,7 +253,7 @@ export default function PropertyFormPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Estado</label>
+                <label className="form-label">Estado *</label>
                 <input
                   type="text"
                   name="state"
@@ -249,6 +262,7 @@ export default function PropertyFormPage() {
                   className="form-input"
                   placeholder="SP"
                   maxLength="2"
+                  required
                   disabled={loading}
                 />
               </div>

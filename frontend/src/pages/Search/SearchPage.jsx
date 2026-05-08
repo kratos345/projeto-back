@@ -23,7 +23,7 @@ export default function SearchPage() {
       setLoading(true);
       const response = await getProperties({
         ...filters,
-        status: 'approved' // Só mostrar imóveis aprovados
+        status: 'ativo' // Só mostrar imóveis aprovados
       });
       setProperties(response.data);
     } catch (err) {
