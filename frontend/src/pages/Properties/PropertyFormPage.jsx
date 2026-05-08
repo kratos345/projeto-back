@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createProperty, updateProperty, getPropertyById } from '../../api/properties';
 import '../../styles/properties.css';
+import PrimeVendaTheme from '../../components/PrimeVendaTheme';
 
 export default function PropertyFormPage() {
   const navigate = useNavigate();
@@ -17,6 +18,9 @@ export default function PropertyFormPage() {
     bathrooms: '',
     area: '',
     address: '',
+    number: '',
+    neighborhood: '',
+    complement: '',
     city: '',
     state: '',
     zipCode: ''
@@ -39,12 +43,15 @@ export default function PropertyFormPage() {
       setForm({
         title: property.title || '',
         description: property.description || '',
-        type: property.type || 'apartamento',
+        type: property.type || 'Apartamento',
         price: property.price || '',
         bedrooms: property.bedrooms || '',
         bathrooms: property.bathrooms || '',
         area: property.area || '',
-        address: property.address || '',
+        address: property.street || '',
+        number: property.number || '',
+        neighborhood: property.neighborhood || '',
+        complement: property.complement || '',
         city: property.city || '',
         state: property.state || '',
         zipCode: property.zipCode || ''
@@ -67,14 +74,19 @@ export default function PropertyFormPage() {
     setLoading(true);
 
     const payload = {
-      ...form,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      type: form.type,
       price: parseFloat(form.price) || 0,
       bedrooms: parseInt(form.bedrooms, 10) || 0,
       bathrooms: parseInt(form.bathrooms, 10) || 0,
       area: parseFloat(form.area) || 0,
-      state: form.state.toUpperCase(),
       address: form.address.trim(),
+      number: form.number.trim(),
+      neighborhood: form.neighborhood.trim(),
+      complement: form.complement.trim(),
       city: form.city.trim(),
+      state: form.state.trim().toUpperCase(),
       zipCode: form.zipCode.trim()
     };
 
@@ -87,7 +99,7 @@ export default function PropertyFormPage() {
 
       navigate('/properties/my');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao salvar imóvel');
+      setError('Não foi possível salvar o imóvel. Verifique os dados e tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -96,19 +108,21 @@ export default function PropertyFormPage() {
   if (initialLoading) return <div className="page"><p>Carregando...</p></div>;
 
   return (
-    <div className="page">
-      <header className="top-bar">
-        <h2>{isEditing ? 'Editar Imóvel' : 'Novo Imóvel'}</h2>
-        <button onClick={() => navigate('/properties/my')} className="btn-secondary">
-          ← Voltar
-        </button>
-      </header>
+    <>
+      <PrimeVendaTheme />
+      <div className="page">
+        <header className="top-bar">
+          <h2>{isEditing ? 'Editar Imóvel' : 'Novo Imóvel'}</h2>
+          <button onClick={() => navigate('/properties/my')} className="btn-ghost">
+            ← Voltar
+          </button>
+        </header>
 
-      <main>
-        <form onSubmit={handleSubmit} className="property-form">
-          {error && <div className="alert alert-error">{error}</div>}
+        <main className="dashboard-content">
+          <form onSubmit={handleSubmit} className="card property-form">
+            {error && <div className="alert alert-error">{error}</div>}
 
-          <div className="form-section">
+            <div className="form-section">
             <h3>Informações Básicas</h3>
 
             <div className="form-group">
@@ -118,7 +132,7 @@ export default function PropertyFormPage() {
                 name="title"
                 value={form.title}
                 onChange={handleChange}
-                className="form-input"
+                className="inp"
                 placeholder="Ex: Apartamento 3 quartos no centro"
                 required
                 disabled={loading}
@@ -131,7 +145,7 @@ export default function PropertyFormPage() {
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="form-input"
+                className="inp"
                 required
                 disabled={loading}
               >
@@ -151,7 +165,7 @@ export default function PropertyFormPage() {
                 name="price"
                 value={form.price}
                 onChange={handleChange}
-                className="form-input"
+                className="inp"
                 placeholder="450000"
                 min="0"
                 step="0.01"
@@ -166,7 +180,7 @@ export default function PropertyFormPage() {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                className="form-input"
+                className="inp"
                 rows="4"
                 placeholder="Descreva o imóvel..."
                 disabled={loading}
@@ -185,7 +199,7 @@ export default function PropertyFormPage() {
                   name="bedrooms"
                   value={form.bedrooms}
                   onChange={handleChange}
-                  className="form-input"
+                  className="inp"
                   min="0"
                   disabled={loading}
                 />
@@ -198,7 +212,7 @@ export default function PropertyFormPage() {
                   name="bathrooms"
                   value={form.bathrooms}
                   onChange={handleChange}
-                  className="form-input"
+                  className="inp"
                   min="0"
                   disabled={loading}
                 />
@@ -211,7 +225,7 @@ export default function PropertyFormPage() {
                   name="area"
                   value={form.area}
                   onChange={handleChange}
-                  className="form-input"
+                  className="inp"
                   min="0"
                   step="0.01"
                   disabled={loading}
@@ -230,11 +244,52 @@ export default function PropertyFormPage() {
                 name="address"
                 value={form.address}
                 onChange={handleChange}
-                className="form-input"
+                className="inp"
                 placeholder="Rua das Flores, 123"
                 required
                 disabled={loading}
               />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Número</label>
+                <input
+                  type="text"
+                  name="number"
+                  value={form.number}
+                  onChange={handleChange}
+                  className="inp"
+                  placeholder="123"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Bairro</label>
+                <input
+                  type="text"
+                  name="neighborhood"
+                  value={form.neighborhood}
+                  onChange={handleChange}
+                  className="inp"
+                  placeholder="Centro"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Complemento</label>
+                <input
+                  type="text"
+                  name="complement"
+                  value={form.complement}
+                  onChange={handleChange}
+                  className="inp"
+                  placeholder="Apartamento 101"
+                  disabled={loading}
+                />
+              </div>
             </div>
 
             <div className="form-row">
@@ -245,7 +300,7 @@ export default function PropertyFormPage() {
                   name="city"
                   value={form.city}
                   onChange={handleChange}
-                  className="form-input"
+                  className="inp"
                   placeholder="São Paulo"
                   required
                   disabled={loading}
@@ -259,7 +314,7 @@ export default function PropertyFormPage() {
                   name="state"
                   value={form.state}
                   onChange={handleChange}
-                  className="form-input"
+                  className="inp"
                   placeholder="SP"
                   maxLength="2"
                   required
@@ -274,7 +329,7 @@ export default function PropertyFormPage() {
                   name="zipCode"
                   value={form.zipCode}
                   onChange={handleChange}
-                  className="form-input"
+                  className="inp"
                   placeholder="01234-567"
                   disabled={loading}
                 />
@@ -299,8 +354,9 @@ export default function PropertyFormPage() {
               {loading ? 'Salvando...' : (isEditing ? 'Atualizar Imóvel' : 'Criar Imóvel')}
             </button>
           </div>
-        </form>
-      </main>
-    </div>
+          </form>
+        </main>
+      </div>
+    </>
   );
 }
