@@ -1,8 +1,9 @@
 ﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getMyProperties, deleteProperty } from '../../api/properties';
-import { updateCurrentUser } from '../../api/users';
+import { getMyProperties, deleteProperty, getProperties } from '../../api/properties';
+import { updateCurrentUser, getUsers, deleteUser } from '../../api/users';
+import { getAdminMetrics, getSellerMetrics } from '../../api/dashboard';
 import PrimeVendaTheme from '../../components/PrimeVendaTheme';
 
 const PROPERTIES = [
@@ -503,57 +504,56 @@ const StatCard = ({ icon, label, value, delta, color = 'var(--gold)' }) => (
   </div>
 );
 
-const PainelVendedorTab = () => (
-  <div className="fade-up">
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
-      <StatCard icon="tag" label="Anúncios ativos" value="8" delta={12} />
-      <StatCard icon="eye" label="Visualizações" value="1.247" delta={8} color="var(--blue)" />
-      <StatCard icon="chart" label="Faturamento" value="R$ 1,73M" delta={-3} color="var(--green)" />
-      <StatCard icon="users" label="Contatos/mês" value="34" delta={20} color="var(--amber)" />
-    </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 28 }}>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Anúncios recentes</h3>
-        {ALL_LISTINGS.slice(0, 4).map((item) => (
-          <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-            <img src={item.image} alt="" style={{ width: 46, height: 46, borderRadius: 10, objectFit: 'cover' }} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</p>
-              <p style={{ fontSize: 12, color: 'var(--gold)' }}>{fmt(item.price)}</p>
-            </div>
-            <StatusBadge status={item.status} />
-          </div>
-        ))}
+const PainelVendedorTab = () => {
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await getSellerMetrics();
+        setMetrics(response.data);
+      } catch (err) {
+        setError('Erro ao carregar métricas do vendedor');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) return <div className="fade-up"><p>Carregando métricas...</p></div>;
+  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
+
+  return (
+    <div className="fade-up">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
+        <StatCard icon="tag" label="Anúncios totais" value={metrics.properties.total || 0} delta={metrics.properties.active ? 12 : 0} />
+        <StatCard icon="users" label="Leads recebidos" value={metrics.leads.total || 0} delta={0} color="var(--blue)" />
+        <StatCard icon="eye" label="Visualizações totais" value={metrics.stats.totalViews || 0} delta={0} color="var(--green)" />
+        <StatCard icon="chart" label="Anúncios ativos" value={metrics.properties.active || 0} delta={0} color="var(--amber)" />
       </div>
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Distribuição por tipo</h3>
-        {[['Imóveis', '🏠', 60, 'var(--gold)'], ['Veículos', '🚗', 40, 'var(--blue)']].map(([l, ic, pct, c]) => (
-          <div key={l} style={{ marginBottom: 18 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 13 }}>{ic} {l}</span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{pct}%</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 28 }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Status dos leads</h3>
+          {metrics.leads.perStatus?.length > 0 ? metrics.leads.perStatus.map((item) => (
+            <div key={item.status} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+              <span style={{ fontSize: 13 }}>{item.status}</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{item.count}</span>
             </div>
-            <div style={{ height: 6, background: 'var(--border)', borderRadius: 3 }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: c, borderRadius: 3 }} />
-            </div>
-          </div>
-        ))}
-        <div style={{ marginTop: 24 }}>
-          <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14, color: 'var(--muted)' }}>Status dos anúncios</h4>
-          {[['Disponível', 'var(--green)', 5], ['Negociando', 'var(--gold)', 2], ['Vendido', 'var(--red)', 1]].map(([l, c, n]) => (
-            <div key={l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: c, display: 'inline-block' }} />
-                {l}
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{n}</span>
-            </div>
-          ))}
+          )) : <p style={{ color: 'var(--muted)' }}>Nenhum lead registrado ainda.</p>}
+        </div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Resumo</h3>
+          <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>Você possui {metrics.properties.total || 0} anúncios no sistema.</p>
+          <p style={{ fontSize: 13, color: 'var(--muted)' }}>Ativos: {metrics.properties.active || 0}</p>
+          <p style={{ fontSize: 13, color: 'var(--muted)' }}>Vencidos/pendentes: {(metrics.properties.total || 0) - (metrics.properties.active || 0)}</p>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const MeusAnunciosTab = () => {
   const [properties, setProperties] = useState([]);
@@ -794,126 +794,218 @@ const ConfiguracoesSeller = () => {
   );
 };
 
-const PainelAdmTab = () => (
-  <div className="fade-up">
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
-      <StatCard icon="tag" label="Total anúncios" value="10" delta={15} />
-      <StatCard icon="users" label="Usuários" value="5" delta={8} color="var(--blue)" />
-      <StatCard icon="chart" label="Volume total" value="R$ 7,8M" delta={22} color="var(--green)" />
-      <StatCard icon="building" label="Vendedores ativos" value="3" delta={5} color="var(--amber)" />
-    </div>
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22, marginBottom: 20 }}>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Atividade recente da plataforma</h3>
-      {[
-        { icon: '🏠', msg: 'Novo anúncio publicado: Casa Moderna em Alphaville', time: '2 min atrás', type: 'gold' },
-        { icon: '👤', msg: 'Novo usuário cadastrado: Maria Oliveira (Vendedora)', time: '18 min atrás', type: 'blue' },
-        { icon: '✅', msg: 'Venda concluída: BMW X5 M Sport – R$ 520.000', time: '1h atrás', type: 'green' },
-        { icon: '📩', msg: 'Contato registrado: Golf GTI – comprador João Silva', time: '3h atrás', type: 'muted' },
-        { icon: '⚠️', msg: 'Anúncio denunciado: Porsche 911 GTS', time: '5h atrás', type: 'red' },
-      ].map((a, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
-          <span style={{ fontSize: 18 }}>{a.icon}</span>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 13.5 }}>{a.msg}</p>
-            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{a.time}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+const PainelAdmTab = () => {
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-const AnunciosAdmTab = () => {
-  const [selected, setSelected] = useState(null);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await getAdminMetrics();
+        setMetrics(response.data);
+      } catch (err) {
+        setError('Erro ao carregar métricas do admin');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) return <div className="fade-up"><p>Carregando métricas...</p></div>;
+  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
+
   return (
     <div className="fade-up">
-      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>Anúncio</th>
-              <th>Vendedor</th>
-              <th>Tipo</th>
-              <th>Preço</th>
-              <th>Status</th>
-              <th>Destaque</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ALL_LISTINGS.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <img src={item.image} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{item.title}</span>
-                  </div>
-                </td>
-                <td style={{ fontSize: 13, color: 'var(--muted)' }}>{item.seller}</td>
-                <td><span className="chip">{item.type === 'imovel' ? '🏠' : '🚗'}</span></td>
-                <td style={{ fontWeight: 600, color: 'var(--gold)', fontSize: 13 }}>{fmt(item.price)}</td>
-                <td><StatusBadge status={item.status} /></td>
-                <td>{item.featured ? <span className="badge badge-gold">⭐ Sim</span> : <span className="badge badge-muted">Não</span>}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn-ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setSelected(item)}>Ver</button>
-                    <button className="btn-danger" style={{ padding: '5px 10px' }}><Ic name="trash" size={12} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
+        <StatCard icon="tag" label="Total de anúncios" value={metrics.properties.total || 0} delta={metrics.properties.active ? 10 : 0} />
+        <StatCard icon="users" label="Vendedores" value={metrics.users.sellers || 0} delta={0} color="var(--blue)" />
+        <StatCard icon="chart" label="Compradores" value={metrics.users.buyers || 0} delta={0} color="var(--green)" />
+        <StatCard icon="building" label="Admins" value={metrics.users.admins || 0} delta={0} color="var(--amber)" />
+      </div>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 22, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Atividade recente</h3>
+        {[
+          { icon: '🏠', msg: 'Novos anúncios disponíveis para revisão', time: 'Agora' },
+          { icon: '👤', msg: 'Novos usuários foram criados hoje', time: 'Hoje' },
+          { icon: '📩', msg: `${metrics.leads.new || 0} leads novos aguardando resposta`, time: 'Agora' },
+          { icon: '✅', msg: `${metrics.leads.closed || 0} leads concluídos`, time: 'Hoje' }
+        ].map((a, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 0', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
+            <span style={{ fontSize: 18 }}>{a.icon}</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13.5 }}>{a.msg}</p>
+              <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{a.time}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-const UsuariosAdmTab = () => (
-  <div className="fade-up">
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-      <table className="tbl">
-        <thead>
-          <tr>
-            <th>Usuário</th>
-            <th>E-mail</th>
-            <th>Tipo</th>
-            <th>Status</th>
-            <th>Cadastro</th>
-            <th>Compras</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {USERS_MOCK.map((u) => (
-            <tr key={u.id}>
-              <td>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
-                    {u.role === 'vendedor' ? '🏪' : '👤'}
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</span>
-                </div>
-              </td>
-              <td style={{ fontSize: 13, color: 'var(--muted)' }}>{u.email}</td>
-              <td><span className="badge badge-muted">{u.role === 'vendedor' ? 'Vendedor' : 'Usuário'}</span></td>
-              <td><StatusBadge status={u.status} /></td>
-              <td style={{ fontSize: 13, color: 'var(--muted)' }}>{u.joined}</td>
-              <td style={{ fontSize: 13, textAlign: 'center' }}>{u.purchases}</td>
-              <td>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button className="btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }}>Editar</button>
-                  <button className="btn-danger" style={{ padding: '5px 10px' }}><Ic name="trash" size={12} /></button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+const AnunciosAdmTab = () => {
+  const [properties, setProperties] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await getProperties();
+        setProperties(response.data);
+      } catch (err) {
+        setError('Erro ao carregar anúncios');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  return (
+    <div className="fade-up">
+      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
+      {loading && <p>Carregando anúncios...</p>}
+      {error && <p className="error">{error}</p>}
+      {!loading && !properties.length && <p style={{ color: 'var(--muted)' }}>Nenhum anúncio encontrado.</p>}
+
+      {!loading && properties.length > 0 && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Anúncio</th>
+                <th>Vendedor</th>
+                <th>Tipo</th>
+                <th>Preço</th>
+                <th>Status</th>
+                <th>Destaque</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {properties.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <img src={item.image || item.images?.[0] || 'https://via.placeholder.com/40'} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{item.title || item.name}</span>
+                    </div>
+                  </td>
+                  <td style={{ fontSize: 13, color: 'var(--muted)' }}>{item.seller || item.user?.name || item.user?.email || '—'}</td>
+                  <td><span className="chip">{item.type === 'imovel' ? '🏠' : '🚗'}</span></td>
+                  <td style={{ fontWeight: 600, color: 'var(--gold)', fontSize: 13 }}>{fmt(item.price || item.value || 0)}</td>
+                  <td><StatusBadge status={item.status || 'pendente'} /></td>
+                  <td>{item.featured ? <span className="badge badge-gold">⭐ Sim</span> : <span className="badge badge-muted">Não</span>}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn-ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setSelected(item)}>Ver</button>
+                      <button className="btn-danger" style={{ padding: '5px 10px' }}><Ic name="trash" size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
+
+const UsuariosAdmTab = () => {
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await getUsers();
+        setUsers(response.data);
+      } catch (err) {
+        setError('Erro ao carregar usuários');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja excluir este usuário?')) return;
+    try {
+      await deleteUser(id);
+      setUsers((prev) => prev.filter((user) => user.id !== id));
+    } catch (err) {
+      setError('Erro ao excluir usuário');
+    }
+  };
+
+  return (
+    <div className="fade-up">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 18 }}>Gerenciar usuários</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 6 }}>Visualize e gerencie as contas cadastradas.</p>
+        </div>
+        <button type="button" className="primary-button" onClick={() => navigate('/dashboard/usuarios/novo')}>Adicionar usuário</button>
+      </div>
+
+      {loading && <p>Carregando usuários...</p>}
+      {error && <p className="error">{error}</p>}
+      {!loading && !users.length && <p style={{ color: 'var(--muted)' }}>Nenhum usuário encontrado.</p>}
+
+      {!loading && users.length > 0 && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>E-mail</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Cadastro</th>
+                <th>Compras</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,var(--gold),var(--amber))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                        {u.role === 'vendedor' ? '🏪' : '👤'}
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</span>
+                    </div>
+                  </td>
+                  <td style={{ fontSize: 13, color: 'var(--muted)' }}>{u.email}</td>
+                  <td><span className="badge badge-muted">{u.role === 'vendedor' ? 'Vendedor' : u.role === 'adm' ? 'Administrador' : 'Usuário'}</span></td>
+                  <td><StatusBadge status={u.isActive ? 'ativo' : 'inativo'} /></td>
+                  <td style={{ fontSize: 13, color: 'var(--muted)' }}>{new Date(u.createdAt).toLocaleDateString('pt-BR')}</td>
+                  <td style={{ fontSize: 13, textAlign: 'center' }}>{u.purchases || 0}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => navigate(`/dashboard/usuarios/${u.id}`)}>Editar</button>
+                      <button className="btn-danger" style={{ padding: '5px 10px' }} onClick={() => handleDelete(u.id)}><Ic name="trash" size={12} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const RelatoriosAdmTab = () => (
   <div className="fade-up">
@@ -952,50 +1044,108 @@ const RelatoriosAdmTab = () => (
   </div>
 );
 
-const ConfiguracoeAdm = () => (
-  <div className="fade-up" style={{ maxWidth: 620 }}>
-    {[
-      { title: 'Configurações gerais da plataforma', items: [['Nome da plataforma', 'PrimeVenda'], ['E-mail de suporte', 'suporte@primevenda.com'], ['CNPJ', '00.000.000/0001-00']] },
-      { title: 'Regras de anúncio', isSelect: true, items: [['Aprovação de anúncios', 'Manual', 'Automática'], ['Máx. fotos por anúncio', '5 fotos', '10 fotos', '15 fotos'], ['Validade máxima', '30 dias', '60 dias', '90 dias', 'Ilimitada']] },
-      { title: 'Segurança', isToggle: true, items: ['Verificação de e-mail obrigatória', 'Autenticação em 2 fatores (A2F)', 'Log de atividades dos admins', 'Modo manutenção'] },
-    ].map((section) => (
-      <div key={section.title} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>{section.title}</h3>
-        {section.isToggle ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {section.items.map((item, i) => (
-              <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 14 }}>{item}</span>
-                <div style={{ width: 44, height: 24, background: i % 2 === 0 ? 'var(--gold)' : 'var(--border)', borderRadius: 12, position: 'relative', cursor: 'pointer', transition: 'background .2s' }}>
-                  <div style={{ position: 'absolute', right: i % 2 === 0 ? 3 : 'auto', left: i % 2 !== 0 ? 3 : 'auto', top: 3, width: 18, height: 18, borderRadius: '50%', background: '#0c0e13' }} />
-                </div>
-              </div>
-            ))}
+const ConfiguracoeAdm = () => {
+  const defaultSettings = {
+    companyName: 'PrimeVenda',
+    supportEmail: 'suporte@primevenda.com',
+    companyCnpj: '00.000.000/0001-00',
+    approvalMode: 'Manual',
+    maxPhotos: '10 fotos',
+    validityPeriod: '60 dias',
+    requireEmailVerification: true,
+    twoFactorAuth: false,
+    adminActivityLog: true,
+    maintenanceMode: false,
+  };
+
+  const [settings, setSettings] = useState(() => {
+    const saved = window.localStorage.getItem('primevenda-settings');
+    return saved ? JSON.parse(saved) : defaultSettings;
+  });
+
+  const handleChange = (key, value) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const saveSettings = () => {
+    window.localStorage.setItem('primevenda-settings', JSON.stringify(settings));
+    window.alert('Configurações salvas com sucesso.');
+  };
+
+  return (
+    <div className="fade-up" style={{ maxWidth: 620 }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>Configurações gerais da plataforma</h3>
+        <div style={{ display: 'grid', gap: 14 }}>
+          <div>
+            <label className="label">Nome da plataforma</label>
+            <input className="inp" value={settings.companyName} onChange={(e) => handleChange('companyName', e.target.value)} />
           </div>
-        ) : section.isSelect ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {section.items.map(([label, ...opts]) => (
-              <div key={label}>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>{label}</label>
-                <select className="inp">{opts.map((o) => <option key={o}>{o}</option>)}</select>
-              </div>
-            ))}
+          <div>
+            <label className="label">E-mail de suporte</label>
+            <input className="inp" value={settings.supportEmail} onChange={(e) => handleChange('supportEmail', e.target.value)} />
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {section.items.map(([label, val]) => (
-              <div key={label}>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>{label}</label>
-                <input className="inp" defaultValue={val} />
-              </div>
-            ))}
+          <div>
+            <label className="label">CNPJ</label>
+            <input className="inp" value={settings.companyCnpj} onChange={(e) => handleChange('companyCnpj', e.target.value)} />
           </div>
-        )}
+        </div>
       </div>
-    ))}
-    <button className="btn-gold" style={{ padding: '13px 32px' }}>Salvar configurações</button>
-  </div>
-);
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>Regras de anúncio</h3>
+        <div style={{ display: 'grid', gap: 14 }}>
+          <div>
+            <label className="label">Aprovação de anúncios</label>
+            <select className="inp" value={settings.approvalMode} onChange={(e) => handleChange('approvalMode', e.target.value)}>
+              <option>Manual</option>
+              <option>Automática</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Máx. fotos por anúncio</label>
+            <select className="inp" value={settings.maxPhotos} onChange={(e) => handleChange('maxPhotos', e.target.value)}>
+              <option>5 fotos</option>
+              <option>10 fotos</option>
+              <option>15 fotos</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Validade máxima</label>
+            <select className="inp" value={settings.validityPeriod} onChange={(e) => handleChange('validityPeriod', e.target.value)}>
+              <option>30 dias</option>
+              <option>60 dias</option>
+              <option>90 dias</option>
+              <option>Ilimitada</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>Segurança</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {[
+            { label: 'Verificação de e-mail obrigatória', key: 'requireEmailVerification' },
+            { label: 'Autenticação em 2 fatores (A2F)', key: 'twoFactorAuth' },
+            { label: 'Log de atividades dos admins', key: 'adminActivityLog' },
+            { label: 'Modo manutenção', key: 'maintenanceMode' },
+          ].map((item) => (
+            <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14 }}>{item.label}</span>
+              <label className="switch">
+                <input type="checkbox" checked={settings[item.key]} onChange={(e) => handleChange(item.key, e.target.checked)} />
+                <span className="slider" />
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button className="btn-gold" style={{ padding: '13px 32px' }} onClick={saveSettings}>Salvar configurações</button>
+    </div>
+  );
+};
 
 const tabTitles = {
   explorar: 'Explorar Anúncios', favoritos: 'Favoritos', 'minhas-compras': 'Minhas Compras', perfil: 'Meu Perfil', painel: 'Painel', 'meus-anuncios': 'Meus Anúncios', 'novo-anuncio': 'Novo Anúncio', configuracoes: 'Configurações', anuncios: 'Gerenciar Anúncios', usuarios: 'Gerenciar Usuários', relatorios: 'Relatórios',
