@@ -221,7 +221,7 @@ const ListingModal = ({ item, onClose }) => {
               <>
                 {item.beds > 0 && <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>🛏</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.beds} quartos</div></div>}
                 {item.baths > 0 && <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>🚿</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.baths} banheiros</div></div>}
-                <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>📐</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.area}m²</div></div>}
+                <div className="stat-card" style={{ padding: 14, textAlign: 'center' }}><div style={{ fontSize: 20 }}>📐</div><div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{item.area}m²</div></div>
               </>
             ) : (
               <>
@@ -664,41 +664,6 @@ const NovoAnuncioTab = () => {
           <button className="btn-gold" style={{ padding: '13px 28px' }} onClick={() => navigate('/properties/new')}>
             Criar novo anúncio
           </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-            <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Quartos</label><input className="inp" type="number" placeholder="3" /></div>
-            <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Banheiros</label><input className="inp" type="number" placeholder="2" /></div>
-            <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Área (m²)</label><input className="inp" type="number" placeholder="120" /></div>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-            <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Ano</label><input className="inp" type="number" placeholder="2024" /></div>
-            <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Quilometragem</label><input className="inp" type="number" placeholder="15000" /></div>
-            <div><label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Cor</label><input className="inp" placeholder="Preto" /></div>
-          </div>
-        )}
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Localização</label>
-          <input className="inp" placeholder="São Paulo, SP" />
-        </div>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Descrição</label>
-          <textarea className="inp" placeholder="Descreva o imóvel ou veículo com detalhes..." />
-        </div>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Fotos</label>
-          <div style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: '32px 20px', textAlign: 'center', cursor: 'pointer', transition: 'border-color .2s' }} onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--gold)')} onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>📸</div>
-            <p style={{ color: 'var(--muted)', fontSize: 14 }}>Arraste imagens ou clique para selecionar</p>
-            <p style={{ color: 'var(--muted)', fontSize: 12, marginTop: 4 }}>PNG, JPG ou WEBP • Máx. 10 fotos • 10MB cada</p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-          <button className="btn-gold" style={{ padding: '13px 32px' }}>Publicar anúncio</button>
-          <button className="btn-ghost" style={{ padding: '13px 24px' }}>Salvar rascunho</button>
         </div>
       </div>
     </div>
