@@ -16,18 +16,27 @@ const seedDB = async () => {
     console.log('🌱 Iniciando seed...');
 
     // 🔥 Buscar usuários existentes
-    let users = await User.findAll();
+    let users = await User.findAll({ order: [['id', 'ASC']] });
 
     if (users.length === 0) {
-      console.log('⚠️ Nenhum usuário encontrado. Por favor, crie um usuário primeiro via registro.');
-      return;
+      console.log('⚠️ Nenhum usuário encontrado. Criando contas de teste...');
+      const defaultPassword = await bcrypt.hash('123456', 10);
+
+      await User.bulkCreate([
+        { name: 'Admin Teste', email: 'admin@example.com', password: defaultPassword, role: 'admin' },
+        { name: 'Vendedor Teste', email: 'vendedor@example.com', password: defaultPassword, role: 'vendedor' },
+        { name: 'Usuário Teste', email: 'usuario@example.com', password: defaultPassword, role: 'user' }
+      ]);
+
+      users = await User.findAll({ order: [['id', 'ASC']] });
+      console.log('✅ 3 usuários de teste criados: admin@example.com, vendedor@example.com, usuario@example.com');
     }
 
-    const seller1 = users[0];
-    const seller2 = users[1];
-    const seller3 = users[2];
-    const user1 = users[3] || users[0];
-    const user2 = users[4] || users[1];
+    const seller1 = users.find((u) => u.role === 'vendedor') || users[0];
+    const seller2 = users.find((u) => u.role === 'admin') || users[1] || users[0];
+    const seller3 = users.find((u) => u.role === 'user') || users[2] || users[0];
+    const user1 = users.find((u) => u.role === 'user') || users[0];
+    const user2 = users.find((u) => u.role === 'vendedor') || users[1] || users[0];
 
     // ============================================================
     // IMÓVEIS

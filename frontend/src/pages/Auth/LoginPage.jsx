@@ -10,6 +10,12 @@ const ROLE_OPTIONS = [
   ["admin", "🛡", "Admin"]
 ];
 
+const TEST_ACCOUNTS = [
+  { role: 'admin', label: 'Admin', email: 'admin@example.com', password: '123456' },
+  { role: 'vendedor', label: 'Vendedor', email: 'vendedor@example.com', password: '123456' },
+  { role: 'user', label: 'Usuário', email: 'usuario@example.com', password: '123456' }
+];
+
 export default function LoginPage() {
   const [role, setRole] = useState("user");
   const [email, setEmail] = useState("");
@@ -30,10 +36,28 @@ export default function LoginPage() {
       signin(data.token, data.user);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Erro no login");
+      const message = err.response?.data?.message || err.message || "Erro no login";
+      setError(message.includes('Network Error') ? 'Erro de conexão: verifique se o backend está rodando.' : message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectRole = (value) => {
+    setRole(value);
+    const account = TEST_ACCOUNTS.find((item) => item.role === value);
+    if (account) {
+      setEmail(account.email);
+      setPassword(account.password);
+      setError("");
+    }
+  };
+
+  const handleFillTestAccount = (account) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setRole(account.role);
+    setError("");
   };
 
   return (
@@ -63,12 +87,12 @@ export default function LoginPage() {
               <h2 style={{ fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6 }}>Bem-vindo de volta</h2>
               <p style={{ color: "var(--muted)", fontSize: 14 }}>Acesse sua conta para continuar</p>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 8, marginBottom: 28 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 8, marginBottom: 18 }}>
               {ROLE_OPTIONS.map(([value, icon, label]) => (
                 <button
                   type="button"
                   key={value}
-                  onClick={() => setRole(value)}
+                  onClick={() => handleSelectRole(value)}
                   style={{
                     padding: "10px 6px",
                     border: `1.5px solid ${role === value ? "var(--gold)" : "var(--border)"}`,
@@ -85,6 +109,30 @@ export default function LoginPage() {
                   {label}
                 </button>
               ))}
+            </div>
+            <div style={{ marginBottom: 22, padding: 14, borderRadius: 14, background: 'rgba(255, 255, 255, 0.05)' }}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>Use uma conta de teste rápida:</p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }}>
+                {TEST_ACCOUNTS.map((account) => (
+                  <button
+                    key={account.role}
+                    type="button"
+                    onClick={() => handleFillTestAccount(account)}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 10,
+                      border: '1px solid rgba(255,255,255,.12)',
+                      background: 'rgba(255,255,255,.04)',
+                      color: 'var(--muted)',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: 12
+                    }}
+                  >
+                    {account.label}
+                  </button>
+                ))}
+              </div>
             </div>
             {error && (
               <div style={{ marginBottom: 20, padding: 14, borderRadius: 12, background: "rgba(224,85,85,.12)", color: "var(--red)", border: "1px solid rgba(224,85,85,.3)" }}>
