@@ -499,22 +499,6 @@ export default function DashboardPage() {
       navigate('/login');
     }
   }, [user, loading, navigate]);
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(null);
-
-  const normalizeRole = (role) => {
-    if (role === 'user') return 'usuario';
-    if (role === 'admin') return 'adm';
-    return role;
-  };
-
-  const roleKey = normalizeRole(user?.role);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/login');
-    }
-  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (user && TABS[roleKey]) {

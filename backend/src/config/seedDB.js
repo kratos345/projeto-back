@@ -1,12 +1,9 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Property = require('../models/Property');
-const Vehicle = require('../models/Vehicle');
 const PropertyImage = require('../models/PropertyImage');
-const VehicleImage = require('../models/VehicleImage');
 const Favorite = require('../models/Favorite');
 const Lead = require('../models/Lead');
-const Review = require('../models/Review');
 
 const seedDB = async () => {
   try {
@@ -77,39 +74,11 @@ const seedDB = async () => {
     console.log('✅ Imóveis criados!');
 
     // ============================================================
-    // VEÍCULOS
-    // ============================================================
-    const veh1 = await Vehicle.create({
-      sellerId: seller2.id,
-      title: 'BMW X5',
-      description: 'SUV luxuoso com todos os opcionais',
-      category: 'Carro',
-      brand: 'BMW',
-      model: 'X5',
-      year: 2024,
-      price: 520000,
-      mileage: 8000,
-      fuel_type: 'Gasolina',
-      transmission: 'Automático',
-      color: 'Preto',
-      city: 'São Paulo',
-      state: 'SP',
-      status: 'disponivel'
-    });
-
-    console.log('✅ Veículos criados!');
-
-    // ============================================================
     // IMAGENS
     // ============================================================
     await PropertyImage.create({
       propertyId: prop1.id,
       url: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be'
-    });
-
-    await VehicleImage.create({
-      vehicleId: veh1.id,
-      url: 'https://images.unsplash.com/photo-1555215695-3004980ad54e'
     });
 
     console.log('✅ Imagens criadas!');
@@ -119,8 +88,7 @@ const seedDB = async () => {
     // ============================================================
     await Favorite.create({
       userId: user1.id,
-      propertyId: prop1.id,
-      itemType: 'property'
+      propertyId: prop1.id
     });
 
     console.log('✅ Favoritos criados!');
@@ -138,19 +106,6 @@ const seedDB = async () => {
     });
 
     console.log('✅ Leads criados!');
-
-    // ============================================================
-    // REVIEWS
-    // ============================================================
-    await Review.create({
-      reviewerId: user1.id,
-      sellerId: seller1.id,
-      propertyId: prop1.id,
-      rating: 5,
-      comment: 'Ótimo vendedor!'
-    });
-
-    console.log('✅ Reviews criados!');
 
     console.log('\n🎉 Seed concluído SEM criar usuários!\n');
 

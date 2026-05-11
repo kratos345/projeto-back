@@ -15,16 +15,6 @@ const Favorite = sequelize.define('Favorite', {
 
   propertyId: {
     type: DataTypes.INTEGER,
-    allowNull: true
-  },
-
-  vehicleId: {
-    type: DataTypes.INTEGER,
-    allowNull: true
-  },
-
-  itemType: {
-    type: DataTypes.ENUM('property', 'vehicle'),
     allowNull: false
   },
 
