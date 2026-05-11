@@ -4,20 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PrimeVendaTheme from "../../components/PrimeVendaTheme";
 
-const ROLE_OPTIONS = [
-  ["user", "👤", "Usuário"],
-  ["vendedor", "🏪", "Vendedor"],
-  ["admin", "🛡", "Admin"]
-];
-
-const TEST_ACCOUNTS = [
-  { role: 'admin', label: 'Admin', email: 'admin@example.com', password: '123456' },
-  { role: 'vendedor', label: 'Vendedor', email: 'vendedor@example.com', password: '123456' },
-  { role: 'user', label: 'Usuário', email: 'usuario@example.com', password: '123456' }
-];
-
 export default function LoginPage() {
-  const [role, setRole] = useState("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -41,23 +28,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSelectRole = (value) => {
-    setRole(value);
-    const account = TEST_ACCOUNTS.find((item) => item.role === value);
-    if (account) {
-      setEmail(account.email);
-      setPassword(account.password);
-      setError("");
-    }
-  };
-
-  const handleFillTestAccount = (account) => {
-    setEmail(account.email);
-    setPassword(account.password);
-    setRole(account.role);
-    setError("");
   };
 
   return (
@@ -86,53 +56,6 @@ export default function LoginPage() {
               <span className="playfair gold-text" style={{ fontSize: 28, fontWeight: 700 }}>PrimeVenda</span>
               <h2 style={{ fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6 }}>Bem-vindo de volta</h2>
               <p style={{ color: "var(--muted)", fontSize: 14 }}>Acesse sua conta para continuar</p>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 8, marginBottom: 18 }}>
-              {ROLE_OPTIONS.map(([value, icon, label]) => (
-                <button
-                  type="button"
-                  key={value}
-                  onClick={() => handleSelectRole(value)}
-                  style={{
-                    padding: "10px 6px",
-                    border: `1.5px solid ${role === value ? "var(--gold)" : "var(--border)"}`,
-                    borderRadius: 10,
-                    background: role === value ? "rgba(201,168,76,.1)" : "transparent",
-                    color: role === value ? "var(--gold)" : "var(--muted)",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    transition: "all .2s"
-                  }}
-                >
-                  <div style={{ fontSize: 18, marginBottom: 3 }}>{icon}</div>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div style={{ marginBottom: 22, padding: 14, borderRadius: 14, background: 'rgba(255, 255, 255, 0.05)' }}>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>Use uma conta de teste rápida:</p>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10 }}>
-                {TEST_ACCOUNTS.map((account) => (
-                  <button
-                    key={account.role}
-                    type="button"
-                    onClick={() => handleFillTestAccount(account)}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: 10,
-                      border: '1px solid rgba(255,255,255,.12)',
-                      background: 'rgba(255,255,255,.04)',
-                      color: 'var(--muted)',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      fontSize: 12
-                    }}
-                  >
-                    {account.label}
-                  </button>
-                ))}
-              </div>
             </div>
             {error && (
               <div style={{ marginBottom: 20, padding: 14, borderRadius: 12, background: "rgba(224,85,85,.12)", color: "var(--red)", border: "1px solid rgba(224,85,85,.3)" }}>
@@ -169,7 +92,7 @@ export default function LoginPage() {
               </div>
             </div>
             <button className="btn-gold" type="submit" disabled={loading} style={{ width: "100%", padding: 14 }}>
-              {loading ? '⏳ Entrando...' : `Entrar como ${role === 'admin' ? 'Admin' : role === 'vendedor' ? 'Vendedor' : 'Usuário'}`}
+              {loading ? '⏳ Entrando...' : 'Entrar'}
             </button>
             <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--muted)" }}>
               Não tem conta?{' '}
