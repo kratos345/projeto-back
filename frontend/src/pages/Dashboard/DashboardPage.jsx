@@ -107,7 +107,21 @@ const TAB_META = {
 const ROLE_LABEL = { usuario: 'Usuário', vendedor: 'Vendedor', adm: 'Administrador' };
 const ROLE_ICON = { usuario: '👤', vendedor: '🏪', adm: '🛡' };
 
-const Sidebar = ({ role, onLogout, user }) => (
+const tabTitles = {
+  explorar: 'Explorar Anúncios',
+  favoritos: 'Favoritos',
+  'minhas-compras': 'Minhas Compras',
+  perfil: 'Perfil',
+  painel: 'Painel de Controle',
+  'meus-anuncios': 'Meus Anúncios',
+  'novo-anuncio': 'Novo Anúncio',
+  configuracoes: 'Configurações',
+  anuncios: 'Anúncios',
+  usuarios: 'Usuários',
+  relatorios: 'Relatórios'
+};
+
+const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
   <div className="sidebar" style={{ width: 230, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
     <div style={{ marginBottom: 32 }}>
       <span className="playfair gold-text" style={{ fontSize: 20, fontWeight: 700 }}>PrimeVenda</span>
@@ -126,36 +140,40 @@ const Sidebar = ({ role, onLogout, user }) => (
 
     <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
       {/* Abas baseadas no role */}
-      {role === 'usuario' && (
-        <>
-          <div className="nav-item active">Explorar Anúncios</div>
-          <div className="nav-item">Favoritos</div>
-          <div className="nav-item">Minhas Compras</div>
-          <div className="nav-item">Perfil</div>
-        </>
-      )}
-      {role === 'vendedor' && (
-        <>
-          <div className="nav-item active">Painel</div>
-          <div className="nav-item">Meus Anúncios</div>
-          <div className="nav-item">Novo Anúncio</div>
-          <div className="nav-item">Configurações</div>
-          <div className="nav-item">Perfil</div>
-        </>
-      )}
-      {role === 'adm' && (
-        <>
-          <div className="nav-item active">Painel</div>
-          <div className="nav-item">Anúncios</div>
-          <div className="nav-item">Usuários</div>
-          <div className="nav-item">Relatórios</div>
-          <div className="nav-item">Configurações</div>
-        </>
-      )}
+      {role === 'usuario' && TABS.usuario.map(tab => (
+        <div 
+          key={tab} 
+          className={`nav-item ${activeTab === tab ? 'active' : ''}`}
+          onClick={() => setActiveTab(tab)}
+          style={{ cursor: 'pointer' }}
+        >
+          {TAB_META[tab]?.icon && <Ic name={TAB_META[tab].icon} size={16} />} {TAB_META[tab]?.label}
+        </div>
+      ))}
+      {role === 'vendedor' && TABS.vendedor.map(tab => (
+        <div 
+          key={tab} 
+          className={`nav-item ${activeTab === tab ? 'active' : ''}`}
+          onClick={() => setActiveTab(tab)}
+          style={{ cursor: 'pointer' }}
+        >
+          {TAB_META[tab]?.icon && <Ic name={TAB_META[tab].icon} size={16} />} {TAB_META[tab]?.label}
+        </div>
+      ))}
+      {role === 'adm' && TABS.adm.map(tab => (
+        <div 
+          key={tab} 
+          className={`nav-item ${activeTab === tab ? 'active' : ''}`}
+          onClick={() => setActiveTab(tab)}
+          style={{ cursor: 'pointer' }}
+        >
+          {TAB_META[tab]?.icon && <Ic name={TAB_META[tab].icon} size={16} />} {TAB_META[tab]?.label}
+        </div>
+      ))}
     </nav>
 
     <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-      <div className="nav-item" onClick={onLogout}>
+      <div className="nav-item" onClick={onLogout} style={{ cursor: 'pointer' }}>
         <Ic name="logout" size={16} /> Sair
       </div>
     </div>
@@ -479,6 +497,176 @@ const AdminDashboard = ({ user, onUserUpdate }) => {
       </div>
     </div>
   );
+};
+
+const ListingModal = ({ item, onClose }) => (
+  <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+    <div style={{ background: 'var(--card)', borderRadius: 16, maxWidth: 600, width: '100%', maxHeight: '80vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ position: 'relative' }}>
+        <img src={item.image} alt={item.title} style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
+        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(0,0,0,.5)', color: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      </div>
+      <div style={{ padding: 24 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>{item.title}</h2>
+        <p style={{ color: 'var(--gold)', fontSize: 20, fontWeight: 700, marginBottom: 16 }}>{fmt(item.price)}</p>
+        <p style={{ color: 'var(--muted)', marginBottom: 16 }}>{item.location}</p>
+        <p style={{ lineHeight: 1.6 }}>{item.description}</p>
+        <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+          <button className="btn-gold" style={{ flex: 1 }}>💬 Entrar em Contato</button>
+          <button className="btn-secondary">❤️ Favoritar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ListingCard = ({ item, onView }) => (
+  <div className="card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
+    <img src={item.image} alt={item.title} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: '14px 14px 0 0' }} />
+    <div style={{ padding: 16 }}>
+      <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
+      <p style={{ color: 'var(--gold)', fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{fmt(item.price)}</p>
+      <p style={{ color: 'var(--muted)', fontSize: 13 }}>{item.location}</p>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        {item.beds && <span style={{ fontSize: 12, color: 'var(--muted)' }}>🛏️ {item.beds}</span>}
+        {item.baths && <span style={{ fontSize: 12, color: 'var(--muted)' }}>🛁 {item.baths}</span>}
+        {item.area && <span style={{ fontSize: 12, color: 'var(--muted)' }}>📐 {item.area}m²</span>}
+      </div>
+    </div>
+  </div>
+);
+
+const StatCard = ({ icon, label, value, delta, color = 'var(--gold)' }) => (
+  <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
+    <div style={{ width: 48, height: 48, borderRadius: '50%', background: `rgba(${color === 'var(--gold)' ? '201,168,76' : color === 'var(--blue)' ? '59,130,246' : color === 'var(--green)' ? '34,197,94' : '245,158,11'},.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Ic name={icon} size={20} color={color} />
+    </div>
+    <div>
+      <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color }}>{value}</p>
+      <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>{label}</p>
+      {delta !== undefined && delta !== 0 && (
+        <p style={{ fontSize: 11, color: delta > 0 ? 'var(--green)' : 'var(--red)', margin: '4px 0 0 0' }}>
+          {delta > 0 ? '+' : ''}{delta}% vs mês anterior
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+const PerfilTab = ({ role, user, onUserUpdate }) => {
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    bio: user?.bio || ''
+  });
+
+  const handleSave = async () => {
+    try {
+      // Aqui você pode implementar a chamada para atualizar o perfil
+      onUserUpdate({ ...user, ...formData });
+      setEditing(false);
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+    }
+  };
+
+  return (
+    <div className="fade-up">
+      <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Meu Perfil</h2>
+      
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600 }}>Informações Pessoais</h3>
+          <button 
+            className={editing ? "btn-secondary" : "btn-gold"} 
+            onClick={() => editing ? handleSave() : setEditing(true)}
+          >
+            {editing ? 'Salvar' : 'Editar'}
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Nome</label>
+            <input 
+              className="inp" 
+              value={formData.name} 
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              disabled={!editing}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>E-mail</label>
+            <input 
+              className="inp" 
+              type="email"
+              value={formData.email} 
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              disabled={!editing}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Telefone</label>
+            <input 
+              className="inp" 
+              value={formData.phone} 
+              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+              disabled={!editing}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Tipo de Conta</label>
+            <input 
+              className="inp" 
+              value={ROLE_LABEL[role] || role} 
+              disabled
+            />
+          </div>
+        </div>
+
+        <div style={{ marginTop: 20 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Biografia</label>
+          <textarea 
+            className="inp" 
+            rows={4}
+            value={formData.bio} 
+            onChange={(e) => setFormData({...formData, bio: e.target.value})}
+            disabled={!editing}
+            placeholder="Conte um pouco sobre você..."
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TabContent = ({ role, tab, user, onUserUpdate }) => {
+  if (role === 'usuario') {
+    if (tab === 'explorar') return <UsuarioDashboard user={user} onUserUpdate={onUserUpdate} />;
+    if (tab === 'favoritos') return <div className="fade-up"><h2>Favoritos</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'minhas-compras') return <div className="fade-up"><h2>Minhas Compras</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'perfil') return <PerfilTab role="usuario" user={user} onUserUpdate={onUserUpdate} />;
+  }
+
+  if (role === 'vendedor') {
+    if (tab === 'painel') return <VendedorDashboard user={user} onUserUpdate={onUserUpdate} />;
+    if (tab === 'meus-anuncios') return <div className="fade-up"><h2>Meus Anúncios</h2><p>Redirecionando...</p></div>;
+    if (tab === 'novo-anuncio') return <div className="fade-up"><h2>Novo Anúncio</h2><p>Redirecionando...</p></div>;
+    if (tab === 'configuracoes') return <div className="fade-up"><h2>Configurações</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'perfil') return <PerfilTab role="vendedor" user={user} onUserUpdate={onUserUpdate} />;
+  }
+
+  if (role === 'adm') {
+    if (tab === 'painel') return <AdminDashboard user={user} onUserUpdate={onUserUpdate} />;
+    if (tab === 'anuncios') return <div className="fade-up"><h2>Anúncios</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'usuarios') return <div className="fade-up"><h2>Usuários</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'relatorios') return <div className="fade-up"><h2>Relatórios</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'configuracoes') return <div className="fade-up"><h2>Configurações</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+  }
+
+  return <div className="fade-up"><h2>Conteúdo não encontrado</h2></div>;
 };
 
 export default function DashboardPage() {
