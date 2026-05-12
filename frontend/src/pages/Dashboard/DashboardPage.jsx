@@ -553,89 +553,209 @@ const StatCard = ({ icon, label, value, delta, color = 'var(--gold)' }) => (
   </div>
 );
 
+const SettingsTab = ({ role, user }) => {
+  const [settings, setSettings] = useState({
+    emailAlerts: true,
+    smsAlerts: false,
+    publicProfile: role === 'vendedor',
+    autoApproveLeads: role === 'vendedor'
+  });
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(`settings_${user?.email}`);
+    if (stored) {
+      setSettings(JSON.parse(stored));
+    }
+  }, [user?.email]);
+
+  const handleSave = () => {
+    window.localStorage.setItem(`settings_${user?.email}`, JSON.stringify(settings));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="fade-up">
+      <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Configurações</h2>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, display: 'grid', gap: 18 }}>
+        <div>
+          <p style={{ fontWeight: 600, marginBottom: 8 }}>Preferências de Notificação</p>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+            <input type="checkbox" checked={settings.emailAlerts} onChange={(e) => setSettings({ ...settings, emailAlerts: e.target.checked })} />
+            <span>Receber alertas por e-mail</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+            <input type="checkbox" checked={settings.smsAlerts} onChange={(e) => setSettings({ ...settings, smsAlerts: e.target.checked })} />
+            <span>Receber alertas por SMS</span>
+          </label>
+        </div>
+
+        {role === 'vendedor' ? (
+          <div>
+            <p style={{ fontWeight: 600, marginBottom: 8 }}>Preferências do Vendedor</p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+              <input type="checkbox" checked={settings.publicProfile} onChange={(e) => setSettings({ ...settings, publicProfile: e.target.checked })} />
+              <span>Perfil público para novos clientes</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+              <input type="checkbox" checked={settings.autoApproveLeads} onChange={(e) => setSettings({ ...settings, autoApproveLeads: e.target.checked })} />
+              <span>Receber leads automaticamente</span>
+            </label>
+          </div>
+        ) : (
+          <div>
+            <p style={{ fontWeight: 600, marginBottom: 8 }}>Conta do Comprador</p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+              <input type="checkbox" checked={settings.publicProfile} onChange={(e) => setSettings({ ...settings, publicProfile: e.target.checked })} />
+              <span>Perfil visível para corretores selecionados</span>
+            </label>
+          </div>
+        )}
+
+        <button className="btn-gold" onClick={handleSave}>Salvar configurações</button>
+        {saved && <p style={{ color: 'var(--green)', margin: 0 }}>Configurações salvas!</p>}
+      </div>
+    </div>
+  );
+};
+
 const PerfilTab = ({ role, user, onUserUpdate }) => {
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    bio: user?.bio || ''
+    profileImage: user?.profileImage || '',
+    cpfCnpj: user?.cpfCnpj || '',
+    company: user?.company || '',
+    creci: user?.creci || '',
+    website: user?.website || ''
   });
+
+  useEffect(() => {
+    setFormData({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      profileImage: user?.profileImage || '',
+      cpfCnpj: user?.cpfCnpj || '',
+      company: user?.company || '',
+      creci: user?.creci || '',
+      website: user?.website || ''
+    });
+  }, [user]);
 
   const handleSave = async () => {
     try {
-      // Aqui você pode implementar a chamada para atualizar o perfil
-      onUserUpdate({ ...user, ...formData });
+      setSaving(true);
+      setError('');
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        profileImage: formData.profileImage,
+        cpfCnpj: formData.cpfCnpj,
+        company: formData.company,
+        creci: formData.creci,
+        website: formData.website
+      };
+      const response = await updateCurrentUser(payload);
+      onUserUpdate(response.data);
       setEditing(false);
-    } catch (error) {
-      console.error('Erro ao salvar perfil:', error);
+    } catch (err) {
+      console.error('Erro ao salvar perfil:', err);
+      setError(err?.response?.data?.message || 'Erro ao atualizar perfil.');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <div className="fade-up">
       <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Meu Perfil</h2>
-      
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 600 }}>Informações Pessoais</h3>
-          <button 
-            className={editing ? "btn-secondary" : "btn-gold"} 
-            onClick={() => editing ? handleSave() : setEditing(true)}
-          >
-            {editing ? 'Salvar' : 'Editar'}
-          </button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 20 }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 600 }}>Informações Pessoais</h3>
+            <button
+              className={editing ? 'btn-secondary' : 'btn-gold'}
+              onClick={() => (editing ? handleSave() : setEditing(true))}
+              disabled={saving}
+            >
+              {saving ? 'Salvando...' : editing ? 'Salvar' : 'Editar'}
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Nome</label>
+              <input className="inp" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} disabled={!editing} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>E-mail</label>
+              <input className="inp" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={!editing} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Telefone</label>
+              <input className="inp" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} disabled={!editing} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Tipo de Conta</label>
+              <input className="inp" value={ROLE_LABEL[role] || role} disabled />
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Foto de Perfil (URL)</label>
+            <input className="inp" value={formData.profileImage} onChange={(e) => setFormData({ ...formData, profileImage: e.target.value })} disabled={!editing} placeholder="https://..." />
+          </div>
+
+          {role === 'usuario' && (
+            <div style={{ marginTop: 20 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>CPF / CNPJ</label>
+              <input className="inp" value={formData.cpfCnpj} onChange={(e) => setFormData({ ...formData, cpfCnpj: e.target.value })} disabled={!editing} />
+            </div>
+          )}
+
+          {role === 'vendedor' && (
+            <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Empresa</label>
+                <input className="inp" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} disabled={!editing} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>CRECI</label>
+                <input className="inp" value={formData.creci} onChange={(e) => setFormData({ ...formData, creci: e.target.value })} disabled={!editing} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Website / Portfólio</label>
+                <input className="inp" value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} disabled={!editing} placeholder="https://..." />
+              </div>
+            </div>
+          )}
+
+          {error && <p style={{ color: 'var(--red)', marginTop: 14 }}>{error}</p>}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Nome</label>
-            <input 
-              className="inp" 
-              value={formData.name} 
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              disabled={!editing}
-            />
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+          <div style={{ width: 140, height: 140, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(201,168,76,.1)' }}>
+            {formData.profileImage ? (
+              <img src={formData.profileImage} alt="Perfil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ color: 'var(--gold)', fontSize: 48 }}>{ROLE_ICON[role]}</div>
+            )}
           </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>E-mail</label>
-            <input 
-              className="inp" 
-              type="email"
-              value={formData.email} 
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              disabled={!editing}
-            />
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>Foto de perfil</p>
+            <p style={{ fontSize: 12, color: 'var(--muted)' }}>Cole a URL da imagem para atualizar</p>
           </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Telefone</label>
-            <input 
-              className="inp" 
-              value={formData.phone} 
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
-              disabled={!editing}
-            />
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{user?.name || 'Nome do usuário'}</p>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>{user?.email}</p>
           </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Tipo de Conta</label>
-            <input 
-              className="inp" 
-              value={ROLE_LABEL[role] || role} 
-              disabled
-            />
-          </div>
-        </div>
-
-        <div style={{ marginTop: 20 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Biografia</label>
-          <textarea 
-            className="inp" 
-            rows={4}
-            value={formData.bio} 
-            onChange={(e) => setFormData({...formData, bio: e.target.value})}
-            disabled={!editing}
-            placeholder="Conte um pouco sobre você..."
-          />
         </div>
       </div>
     </div>
@@ -647,6 +767,7 @@ const TabContent = ({ role, tab, user, onUserUpdate }) => {
     if (tab === 'explorar') return <UsuarioDashboard user={user} onUserUpdate={onUserUpdate} />;
     if (tab === 'favoritos') return <div className="fade-up"><h2>Favoritos</h2><p>Funcionalidade em desenvolvimento...</p></div>;
     if (tab === 'minhas-compras') return <div className="fade-up"><h2>Minhas Compras</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'configuracoes') return <SettingsTab role="usuario" user={user} />;
     if (tab === 'perfil') return <PerfilTab role="usuario" user={user} onUserUpdate={onUserUpdate} />;
   }
 
@@ -654,7 +775,7 @@ const TabContent = ({ role, tab, user, onUserUpdate }) => {
     if (tab === 'painel') return <VendedorDashboard user={user} onUserUpdate={onUserUpdate} />;
     if (tab === 'meus-anuncios') return <div className="fade-up"><h2>Meus Anúncios</h2><p>Redirecionando...</p></div>;
     if (tab === 'novo-anuncio') return <div className="fade-up"><h2>Novo Anúncio</h2><p>Redirecionando...</p></div>;
-    if (tab === 'configuracoes') return <div className="fade-up"><h2>Configurações</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'configuracoes') return <SettingsTab role="vendedor" user={user} />;
     if (tab === 'perfil') return <PerfilTab role="vendedor" user={user} onUserUpdate={onUserUpdate} />;
   }
 
@@ -663,7 +784,7 @@ const TabContent = ({ role, tab, user, onUserUpdate }) => {
     if (tab === 'anuncios') return <div className="fade-up"><h2>Anúncios</h2><p>Funcionalidade em desenvolvimento...</p></div>;
     if (tab === 'usuarios') return <div className="fade-up"><h2>Usuários</h2><p>Funcionalidade em desenvolvimento...</p></div>;
     if (tab === 'relatorios') return <div className="fade-up"><h2>Relatórios</h2><p>Funcionalidade em desenvolvimento...</p></div>;
-    if (tab === 'configuracoes') return <div className="fade-up"><h2>Configurações</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'configuracoes') return <SettingsTab role="adm" user={user} />;
   }
 
   return <div className="fade-up"><h2>Conteúdo não encontrado</h2></div>;

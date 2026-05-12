@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
   }
 
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, cpfCnpj } = req.body;
 
     // Validação de campos obrigatórios
     if (!name || !email || !password) {
@@ -48,6 +48,7 @@ exports.register = async (req, res) => {
       email,
       password: hashedPassword,
       role: normalizedRole,
+      cpfCnpj: cpfCnpj || null,
     });
 
     console.log('✅ Usuário criado com sucesso:', user.email);

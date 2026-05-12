@@ -13,7 +13,7 @@ const ROLE_OPTIONS = [
 export default function RegisterPage() {
   const { signin } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', cpfCnpj: '', role: 'user' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,10 +22,17 @@ export default function RegisterPage() {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (form.password !== form.confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await registerRequest(form);
+      const { confirmPassword, ...payload } = form;
+      const data = await registerRequest(payload);
       signin(data.token, data.user);
       navigate('/');
     } catch (err) {
@@ -100,17 +107,13 @@ export default function RegisterPage() {
                   <input className="inp" name="name" placeholder="João" value={form.name} onChange={handle} required disabled={loading} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Sobrenome</label>
-                  <input className="inp" placeholder="Silva" disabled={loading} />
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>CPF/CNPJ</label>
+                  <input className="inp" name="cpfCnpj" placeholder="000.000.000-00" value={form.cpfCnpj} onChange={handle} disabled={loading} />
                 </div>
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>E-mail</label>
                 <input className="inp" name="email" type="email" placeholder="seu@email.com" value={form.email} onChange={handle} required disabled={loading} />
-              </div>
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>CPF/CNPJ</label>
-                <input className="inp" placeholder="000.000.000-00" disabled={loading} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
@@ -118,8 +121,8 @@ export default function RegisterPage() {
                   <input className="inp" name="password" type="password" placeholder="••••••••" value={form.password} onChange={handle} required minLength={6} disabled={loading} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Confirmar</label>
-                  <input className="inp" placeholder="••••••••" disabled={loading} />
+                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 5, display: 'block', letterSpacing: '.4px', textTransform: 'uppercase' }}>Confirmar senha</label>
+                  <input className="inp" name="confirmPassword" type="password" placeholder="••••••••" value={form.confirmPassword} onChange={handle} required minLength={6} disabled={loading} />
                 </div>
               </div>
             </div>
