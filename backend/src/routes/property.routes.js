@@ -3,6 +3,7 @@ const router = express.Router();
 const propertyController = require('../controllers/property.controller');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { roleMiddleware } = require('../middlewares/roleMiddleware');
+const { createUploadMiddleware } = require('../middlewares/uploadMiddleware');
 
 // 🟢 PÚBLICAS (qualquer um pode ver)
 router.get('/', propertyController.getAll); // Listar com filtros
@@ -13,6 +14,8 @@ router.get('/vendedor/minhas', authMiddleware, roleMiddleware('vendedor'), prope
 router.get('/:id', propertyController.getById); // Ver detalhes
 router.put('/:id', authMiddleware, propertyController.update); // Atualizar
 router.delete('/:id', authMiddleware, propertyController.delete); // Deletar
+router.post('/:id/images', authMiddleware, roleMiddleware('vendedor', 'admin'), createUploadMiddleware('properties').array('images', 6), propertyController.uploadPropertyImages);
+router.delete('/:id/images/:imageId', authMiddleware, roleMiddleware('vendedor', 'admin'), propertyController.deletePropertyImage);
 
 // 🟢 ADMIN (aprovação)
 router.post('/:id/approve', authMiddleware, roleMiddleware('admin'), propertyController.approve);

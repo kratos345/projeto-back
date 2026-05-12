@@ -2,7 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyProperties, deleteProperty, getProperties } from '../../api/properties';
-import { updateCurrentUser, getUsers, deleteUser } from '../../api/users';
+import { updateCurrentUser, uploadAvatar, getUsers, deleteUser } from '../../api/users';
 import { getAdminMetrics, getSellerMetrics } from '../../api/dashboard';
 import PrimeVendaTheme from '../../components/PrimeVendaTheme';
 
@@ -620,10 +620,111 @@ const SettingsTab = ({ role, user }) => {
   );
 };
 
+const MeusAnunciosTab = () => {
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [refresh, setRefresh] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await getMyProperties();
+        setProperties(response.data);
+      } catch (err) {
+        setError('Não foi possível carregar seus anúncios.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [refresh]);
+
+  if (loading) return <div className="fade-up"><p>Carregando seus anúncios...</p></div>;
+  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
+
+  return (
+    <div className="fade-up">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: 24, fontWeight: 600 }}>Meus Anúncios</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Veja todos os seus anúncios cadastrados e gerencie suas publicações.</p>
+        </div>
+        <button className="btn-gold" onClick={() => navigate('/properties/new')}>➕ Novo Anúncio</button>
+      </div>
+
+      {properties.length === 0 ? (
+        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+          <h3>Você ainda não tem anúncios</h3>
+          <p style={{ color: 'var(--muted)', margin: '16px 0' }}>Crie seu primeiro anúncio agora e coloque sua oferta no ar.</p>
+          <button className="btn-gold" onClick={() => navigate('/properties/new')}>Criar Anúncio</button>
+        </div>
+      ) : (
+        <div className="card">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Tipo</th>
+                <th>Preço</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {properties.map((property) => (
+                <tr key={property.id}>
+                  <td>{property.title}</td>
+                  <td>{property.type}</td>
+                  <td>{fmt(property.price)}</td>
+                  <td><StatusBadge status={property.status} /></td>
+                  <td style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button className="btn-ghost" onClick={() => navigate(`/properties/edit/${property.id}`)}>Editar</button>
+                    <button className="btn-ghost" onClick={() => navigate(`/properties/edit/${property.id}`)}>Ver</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const NovoAnuncioTab = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="fade-up">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: 24, fontWeight: 600 }}>Novo Anúncio</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Cadastre um novo imóvel e comece a receber contatos de interessados.</p>
+        </div>
+        <button className="btn-gold" onClick={() => navigate('/properties/new')}>Abrir formulário</button>
+      </div>
+
+      <div className="card" style={{ padding: 24 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14 }}>Crie seu anúncio em poucos passos</h3>
+        <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--muted)', lineHeight: 1.8 }}>
+          <li>Descreva o imóvel de forma clara e atrativa.</li>
+          <li>Escolha o tipo, preço e localização.</li>
+          <li>Adicione fotos e detalhes para destacar seu anúncio.</li>
+          <li>Publique e acompanhe o desempenho pelo painel.</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 const PerfilTab = ({ role, user, onUserUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [preview, setPreview] = useState(user?.profileImage || '');
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -646,25 +747,48 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
       creci: user?.creci || '',
       website: user?.website || ''
     });
+    setPreview(user?.profileImage || '');
+    setAvatarFile(null);
   }, [user]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Escolha um arquivo de imagem válido.');
+      return;
+    }
+    setAvatarFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
 
   const handleSave = async () => {
     try {
       setSaving(true);
       setError('');
+      let profileImage = formData.profileImage;
+
+      if (avatarFile) {
+        const uploadResponse = await uploadAvatar(avatarFile);
+        profileImage = uploadResponse.data.profileImage;
+      }
+
       const payload = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        profileImage: formData.profileImage,
+        profileImage,
         cpfCnpj: formData.cpfCnpj,
         company: formData.company,
         creci: formData.creci,
         website: formData.website
       };
+
       const response = await updateCurrentUser(payload);
       onUserUpdate(response.data);
       setEditing(false);
+      setAvatarFile(null);
+      setPreview(response.data.profileImage || '');
     } catch (err) {
       console.error('Erro ao salvar perfil:', err);
       setError(err?.response?.data?.message || 'Erro ao atualizar perfil.');
@@ -713,6 +837,17 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
             <input className="inp" value={formData.profileImage} onChange={(e) => setFormData({ ...formData, profileImage: e.target.value })} disabled={!editing} placeholder="https://..." />
           </div>
 
+          <div style={{ marginTop: 20 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>Upload de Arquivo</label>
+            <input
+              className="inp"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={!editing}
+            />
+          </div>
+
           {role === 'usuario' && (
             <div style={{ marginTop: 20 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginBottom: 6, display: 'block' }}>CPF / CNPJ</label>
@@ -742,15 +877,15 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
 
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
           <div style={{ width: 140, height: 140, borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(201,168,76,.1)' }}>
-            {formData.profileImage ? (
-              <img src={formData.profileImage} alt="Perfil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {preview ? (
+              <img src={preview} alt="Perfil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <div style={{ color: 'var(--gold)', fontSize: 48 }}>{ROLE_ICON[role]}</div>
             )}
           </div>
           <div style={{ textAlign: 'center' }}>
             <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>Foto de perfil</p>
-            <p style={{ fontSize: 12, color: 'var(--muted)' }}>Cole a URL da imagem para atualizar</p>
+            <p style={{ fontSize: 12, color: 'var(--muted)' }}>Envie um arquivo ou use uma URL.</p>
           </div>
           <div style={{ textAlign: 'center' }}>
             <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{user?.name || 'Nome do usuário'}</p>
@@ -773,8 +908,8 @@ const TabContent = ({ role, tab, user, onUserUpdate }) => {
 
   if (role === 'vendedor') {
     if (tab === 'painel') return <VendedorDashboard user={user} onUserUpdate={onUserUpdate} />;
-    if (tab === 'meus-anuncios') return <div className="fade-up"><h2>Meus Anúncios</h2><p>Redirecionando...</p></div>;
-    if (tab === 'novo-anuncio') return <div className="fade-up"><h2>Novo Anúncio</h2><p>Redirecionando...</p></div>;
+    if (tab === 'meus-anuncios') return <MeusAnunciosTab />;
+    if (tab === 'novo-anuncio') return <NovoAnuncioTab />;
     if (tab === 'configuracoes') return <SettingsTab role="vendedor" user={user} />;
     if (tab === 'perfil') return <PerfilTab role="vendedor" user={user} onUserUpdate={onUserUpdate} />;
   }

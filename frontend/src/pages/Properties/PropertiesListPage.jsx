@@ -80,6 +80,7 @@ export default function PropertiesListPage() {
               <table className="tbl">
                 <thead>
                   <tr>
+                    <th>Imagem</th>
                     <th>Título</th>
                     <th>Tipo</th>
                     <th>Preço</th>
@@ -91,6 +92,13 @@ export default function PropertiesListPage() {
                 <tbody>
                   {properties.map((property) => (
                     <tr key={property.id}>
+                      <td>
+                        {property.images?.[0]?.url ? (
+                          <img src={property.images[0].url} alt="Thumb" className="table-thumb" />
+                        ) : (
+                          <span className="badge badge-muted">Sem imagem</span>
+                        )}
+                      </td>
                       <td>{property.title}</td>
                       <td>{property.type}</td>
                       <td>{formatPrice(property.price)}</td>

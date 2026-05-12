@@ -1,5 +1,6 @@
 const Property = require('../models/Property');
 const User = require('../models/User');
+const PropertyImage = require('../models/PropertyImage');
 
 // 🟢 LISTAR TODAS as propriedades (com filtros)
 exports.getAll = async (req, res, next) => {
@@ -52,7 +53,8 @@ exports.getByVendedor = async (req, res, next) => {
     const { id } = req.user; // vem do middleware de autenticação
 
     const properties = await Property.findAll({
-      where: { sellerId: id }
+      where: { sellerId: id },
+      include: [{ model: PropertyImage, as: 'images' }]
     });
 
     res.json(properties);
@@ -65,7 +67,10 @@ exports.getByVendedor = async (req, res, next) => {
 exports.getById = async (req, res, next) => {
   try {
     const property = await Property.findByPk(req.params.id, {
-      include: [{ model: User, attributes: ['id', 'name', 'email'] }]
+      include: [
+        { model: User, attributes: ['id', 'name', 'email'] },
+        { model: PropertyImage, as: 'images' }
+      ]
     });
 
     if (!property) {
@@ -154,6 +159,56 @@ exports.delete = async (req, res, next) => {
     }
 
     await property.destroy();
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.uploadPropertyImages = async (req, res, next) => {
+  try {
+    const property = await Property.findByPk(req.params.id);
+    if (!property) return res.status(404).json({ message: 'Propriedade não encontrada' });
+
+    if (req.user.role !== 'admin' && property.sellerId !== req.user.id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'Nenhuma imagem enviada.' });
+    }
+
+    const images = await Promise.all(req.files.map((file, index) => {
+      const url = `${req.protocol}://${req.get('host')}/uploads/properties/${file.filename}`;
+      return PropertyImage.create({
+        propertyId: property.id,
+        url,
+        order: index,
+        isFeatured: index === 0
+      });
+    }));
+
+    res.status(201).json(images);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deletePropertyImage = async (req, res, next) => {
+  try {
+    const image = await PropertyImage.findByPk(req.params.imageId);
+    if (!image || image.propertyId.toString() !== req.params.id) {
+      return res.status(404).json({ message: 'Imagem não encontrada.' });
+    }
+
+    const property = await Property.findByPk(image.propertyId);
+    if (!property) return res.status(404).json({ message: 'Propriedade não encontrada.' });
+
+    if (req.user.role !== 'admin' && property.sellerId !== req.user.id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    await image.destroy();
     res.status(204).send();
   } catch (err) {
     next(err);

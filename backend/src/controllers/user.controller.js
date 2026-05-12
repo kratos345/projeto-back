@@ -38,6 +38,24 @@ exports.updateMe = async (req, res, next) => {
   }
 };
 
+exports.uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Nenhum arquivo enviado.' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ message: 'Usuario nao encontrado.' });
+
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/users/${req.file.filename}`;
+    await user.update({ profileImage: fileUrl });
+
+    res.json(safe(user));
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getAll = async (req, res, next) => {
   try { res.json((await User.findAll()).map(safe)); } catch (err) { next(err); }
 };

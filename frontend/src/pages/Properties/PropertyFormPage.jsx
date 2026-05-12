@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createProperty, updateProperty, getPropertyById } from '../../api/properties';
+import { createProperty, updateProperty, getPropertyById, uploadPropertyImages, deletePropertyImage } from '../../api/properties';
 import '../../styles/properties.css';
 import PrimeVendaTheme from '../../components/PrimeVendaTheme';
 
@@ -29,6 +29,8 @@ export default function PropertyFormPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [initialLoading, setInitialLoading] = useState(isEditing);
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
 
   useEffect(() => {
     if (isEditing) {
@@ -56,6 +58,7 @@ export default function PropertyFormPage() {
         state: property.state || '',
         zipCode: property.zipCode || ''
       });
+      setExistingImages(property.images || []);
     } catch (err) {
       setError('Erro ao carregar imóvel');
     } finally {
@@ -66,6 +69,20 @@ export default function PropertyFormPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setNewImages(files);
+  };
+
+  const handleRemoveExistingImage = async (imageId) => {
+    try {
+      await deletePropertyImage(id, imageId);
+      setExistingImages(prev => prev.filter((image) => image.id !== imageId));
+    } catch (err) {
+      setError('Erro ao remover imagem.');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -91,10 +108,17 @@ export default function PropertyFormPage() {
     };
 
     try {
+      let propertyId = id;
+
       if (isEditing) {
         await updateProperty(id, payload);
       } else {
-        await createProperty(payload);
+        const response = await createProperty(payload);
+        propertyId = response.data.id;
+      }
+
+      if (newImages.length > 0) {
+        await uploadPropertyImages(propertyId, newImages);
       }
 
       navigate('/properties/my');
@@ -335,6 +359,57 @@ export default function PropertyFormPage() {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Imagens do anúncio</h3>
+
+            <div className="form-group">
+              <label className="form-label">Selecionar imagens</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                className="inp"
+                disabled={loading}
+              />
+            </div>
+
+            {existingImages.length > 0 && (
+              <div className="image-preview-list">
+                <h4>Imagens já enviadas</h4>
+                <div className="image-preview-grid">
+                  {existingImages.map((image) => (
+                    <div key={image.id} className="image-preview-card">
+                      <img src={image.url} alt="Anúncio" />
+                      <button
+                        type="button"
+                        className="btn-ghost btn-small"
+                        onClick={() => handleRemoveExistingImage(image.id)}
+                        disabled={loading}
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {newImages.length > 0 && (
+              <div className="image-preview-list">
+                <h4>Novas imagens selecionadas</h4>
+                <div className="image-preview-grid">
+                  {newImages.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="image-preview-card">
+                      <img src={URL.createObjectURL(file)} alt={file.name} />
+                      <p>{file.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="form-actions">
