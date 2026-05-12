@@ -298,7 +298,7 @@ const VendedorDashboard = ({ user, onUserUpdate }) => {
 
       {/* Ações rápidas */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
-        <button className="btn-gold" onClick={() => navigate('/properties/new')}>➕ Novo Anúncio</button>
+        <button className="btn-gold" onClick={() => navigate('/properties/my', { state: { openNew: true } })}>➕ Novo Anúncio</button>
         <button className="btn-secondary" onClick={() => navigate('/properties/my')}>📋 Ver Todos os Anúncios</button>
         <button className="btn-secondary" onClick={() => navigate('/leads')}>💬 Ver Leads</button>
       </div>
@@ -332,7 +332,7 @@ const VendedorDashboard = ({ user, onUserUpdate }) => {
                   <td><StatusBadge status={property.status} /></td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => navigate(`/properties/edit/${property.id}`)}><Ic name="edit" size={12} /></button>
+                      <button className="btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => navigate('/properties/my', { state: { editId: property.id } })}><Ic name="edit" size={12} /></button>
                     </div>
                   </td>
                 </tr>
@@ -651,14 +651,14 @@ const MeusAnunciosTab = () => {
           <h2 style={{ fontSize: 24, fontWeight: 600 }}>Meus Anúncios</h2>
           <p style={{ color: 'var(--muted)', fontSize: 14 }}>Veja todos os seus anúncios cadastrados e gerencie suas publicações.</p>
         </div>
-        <button className="btn-gold" onClick={() => navigate('/properties/new')}>➕ Novo Anúncio</button>
+        <button className="btn-gold" onClick={() => navigate('/properties/my', { state: { openNew: true } })}>➕ Novo Anúncio</button>
       </div>
 
       {properties.length === 0 ? (
         <div className="card" style={{ padding: 24, textAlign: 'center' }}>
           <h3>Você ainda não tem anúncios</h3>
           <p style={{ color: 'var(--muted)', margin: '16px 0' }}>Crie seu primeiro anúncio agora e coloque sua oferta no ar.</p>
-          <button className="btn-gold" onClick={() => navigate('/properties/new')}>Criar Anúncio</button>
+          <button className="btn-gold" onClick={() => navigate('/properties/my', { state: { openNew: true } })}>Criar Anúncio</button>
         </div>
       ) : (
         <div className="card">
@@ -680,8 +680,8 @@ const MeusAnunciosTab = () => {
                   <td>{fmt(property.price)}</td>
                   <td><StatusBadge status={property.status} /></td>
                   <td style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button className="btn-ghost" onClick={() => navigate(`/properties/edit/${property.id}`)}>Editar</button>
-                    <button className="btn-ghost" onClick={() => navigate(`/properties/edit/${property.id}`)}>Ver</button>
+                    <button className="btn-ghost" onClick={() => navigate('/properties/my', { state: { editId: property.id } })}>Editar</button>
+                    <button className="btn-ghost" onClick={() => navigate('/properties/my', { state: { editId: property.id } })}>Ver</button>
                   </td>
                 </tr>
               ))}
@@ -703,7 +703,7 @@ const NovoAnuncioTab = () => {
           <h2 style={{ fontSize: 24, fontWeight: 600 }}>Novo Anúncio</h2>
           <p style={{ color: 'var(--muted)', fontSize: 14 }}>Cadastre um novo imóvel e comece a receber contatos de interessados.</p>
         </div>
-        <button className="btn-gold" onClick={() => navigate('/properties/new')}>Abrir formulário</button>
+        <button className="btn-gold" onClick={() => navigate('/properties/my', { state: { openNew: true } })}>Abrir formulário</button>
       </div>
 
       <div className="card" style={{ padding: 24 }}>

@@ -5,7 +5,6 @@ import RegisterPage    from '../pages/Auth/RegisterPage'
 import DashboardPage   from '../pages/Dashboard/DashboardPage'
 import UsersPage       from '../pages/Users/UsersPage'
 import PropertiesListPage from '../pages/Properties/PropertiesListPage'
-import PropertyFormPage   from '../pages/Properties/PropertyFormPage'
 import LeadsPage       from '../pages/Leads/LeadsPage'
 import SalesPage       from '../pages/Sales/SalesPage'
 import SearchPage      from '../pages/Search/SearchPage'
@@ -39,8 +38,8 @@ export default function AppRoutes() {
 
         {/* Rotas de vendedor */}
         <Route path="/properties/my"     element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
-        <Route path="/properties/new"    element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertyFormPage /></RoleBasedRoute>} />
-        <Route path="/properties/edit/:id" element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertyFormPage /></RoleBasedRoute>} />
+        <Route path="/properties/new"    element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
+        <Route path="/properties/edit/:id" element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
         <Route path="/leads"    element={<RoleBasedRoute allowedRoles={['vendedor']}><LeadsPage /></RoleBasedRoute>} />
         <Route path="/sales"    element={<RoleBasedRoute allowedRoles={['vendedor']}><SalesPage /></RoleBasedRoute>} />
 

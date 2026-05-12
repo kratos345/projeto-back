@@ -1,7 +1,7 @@
 const Property = require('../models/Property');
 const Lead = require('../models/Lead');
 const User = require('../models/User');
-const sequelize = require('../config/database');
+const { sequelize } = require('../config/database');
 
 // 📊 DASHBOARD ADMIN - Métricas Gerais
 exports.adminMetrics = async (req, res, next) => {
@@ -35,7 +35,7 @@ exports.adminMetrics = async (req, res, next) => {
       attributes: {
         include: [
           [
-            sequelize.sequelize.fn('COUNT', sequelize.sequelize.col('Properties.id')),
+            sequelize.fn('COUNT', sequelize.col('Properties.id')),
             'totalProperties'
           ]
         ]
@@ -48,7 +48,7 @@ exports.adminMetrics = async (req, res, next) => {
         }
       ],
       group: ['User.id'],
-      order: [[sequelize.sequelize.fn('COUNT', sequelize.sequelize.col('Properties.id')), 'DESC']],
+      order: [[sequelize.fn('COUNT', sequelize.col('Properties.id')), 'DESC']],
       limit: 5,
       subQuery: false,
       raw: true
@@ -97,7 +97,7 @@ exports.sellerMetrics = async (req, res, next) => {
     const leadsPerStatus = await Lead.findAll({
       attributes: [
         'status',
-        [sequelize.sequelize.fn('COUNT', sequelize.sequelize.col('id')), 'count']
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
       ],
       include: [{ model: Property, where: { sellerId: id }, attributes: [] }],
       group: ['status'],
@@ -107,9 +107,7 @@ exports.sellerMetrics = async (req, res, next) => {
     // Total de visualizações
     const totalViews = await Property.findAll({
       where: { sellerId: id },
-      attributes: [[sequelize.sequelize.fn('SUM', sequelize.sequelize.col('views')), 'total']]
-    });
-
+      attributes: [[sequelize.fn('SUM', sequelize.col('views')), 'total']]
     res.json({
       properties: {
         total: totalProperties,
