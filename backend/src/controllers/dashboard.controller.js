@@ -108,6 +108,8 @@ exports.sellerMetrics = async (req, res, next) => {
     const totalViews = await Property.findAll({
       where: { sellerId: id },
       attributes: [[sequelize.fn('SUM', sequelize.col('views')), 'total']]
+    });
+
     res.json({
       properties: {
         total: totalProperties,

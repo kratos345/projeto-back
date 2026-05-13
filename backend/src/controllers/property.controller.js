@@ -38,7 +38,7 @@ exports.getAll = async (req, res, next) => {
 
     const properties = await Property.findAll({
       where,
-      include: [{ model: User, attributes: ['id', 'name', 'email'] }]
+      include: [{ model: User, as: 'seller', attributes: ['id', 'name', 'email'] }]
     });
 
     res.json(properties);
@@ -68,7 +68,7 @@ exports.getById = async (req, res, next) => {
   try {
     const property = await Property.findByPk(req.params.id, {
       include: [
-        { model: User, attributes: ['id', 'name', 'email'] },
+        { model: User, as: 'seller', attributes: ['id', 'name', 'email'] },
         { model: PropertyImage, as: 'images' }
       ]
     });
@@ -92,21 +92,46 @@ exports.create = async (req, res, next) => {
     const { title, description, type, price, bedrooms, bathrooms, area, address, city, state, zipCode } = req.body;
     const sellerId = req.user.id;
 
+    // Validações rigorosas
+    if (!title || title.trim().length < 10) {
+      return res.status(400).json({ message: 'Título deve ter no mínimo 10 caracteres' });
+    }
+
+    if (!price || price <= 0) {
+      return res.status(400).json({ message: 'Preço deve ser maior que zero' });
+    }
+
+    if (!address || address.trim().length < 5) {
+      return res.status(400).json({ message: 'Endereço deve ter no mínimo 5 caracteres' });
+    }
+
+    if (!city || city.trim().length < 3) {
+      return res.status(400).json({ message: 'Cidade inválida' });
+    }
+
+    if (!state || state.trim().length !== 2) {
+      return res.status(400).json({ message: 'Estado deve ter 2 caracteres' });
+    }
+
+    if (bedrooms < 0 || bathrooms < 0 || area < 0) {
+      return res.status(400).json({ message: 'Valores não podem ser negativos' });
+    }
+
     const property = await Property.create({
-      title,
-      description,
+      title: title.trim(),
+      description: description?.trim() || '',
       type,
       price,
-      bedrooms,
-      bathrooms,
-      area,
-      street: address,
+      bedrooms: bedrooms || 0,
+      bathrooms: bathrooms || 0,
+      area: area || 0,
+      street: address.trim(),
       number: '',
       complement: '',
       neighborhood: '',
-      city,
-      state,
-      zipCode,
+      city: city.trim(),
+      state: state.trim().toUpperCase(),
+      zipCode: zipCode?.trim() || '',
       sellerId,
       status: 'pendente'
     });

@@ -72,8 +72,43 @@ exports.updateStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Lead não encontrado' });
     }
 
-    await lead.update({ status, notes: notes || lead.notes });
+    // Validar status permitidos
+    const validStatuses = ['novo', 'contatado', 'visita_agendada', 'proposta_enviada', 'negociando', 'fechado', 'perdido'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Status inválido. Use um de: ${validStatuses.join(', ')}` });
+    }
+
+    await lead.update({ status, notes: notes || lead.notes, updatedAt: new Date() });
     res.json(lead);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 🔴 FECHAR lead (marcar como fechado)
+exports.closeLead = async (req, res, next) => {
+  try {
+    const { reason } = req.body; // 'fechado' ou 'perdido'
+    const lead = await Lead.findByPk(req.params.id);
+
+    if (!lead) {
+      return res.status(404).json({ message: 'Lead não encontrado' });
+    }
+
+    const validReasons = ['fechado', 'perdido'];
+    if (!validReasons.includes(reason)) {
+      return res.status(400).json({ message: 'Motivo inválido: use "fechado" ou "perdido"' });
+    }
+
+    await lead.update({ 
+      status: reason, 
+      updatedAt: new Date()
+    });
+
+    res.json({ 
+      message: `Lead marcado como ${reason}`, 
+      lead 
+    });
   } catch (err) {
     next(err);
   }

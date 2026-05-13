@@ -1,0 +1,271 @@
+/* Admin Panel Styles */
+
+.admin-top-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.admin-top-bar h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.8rem;
+}
+
+.admin-top-bar p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.admin-content {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.admin-filters {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.filter-select:hover {
+  border-color: #667eea;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.admin-properties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.property-card-admin {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.property-card-admin:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.property-image {
+  position: relative;
+  height: 250px;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+.property-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+  color: #999;
+  font-weight: 500;
+}
+
+.status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.property-info {
+  padding: 1.5rem;
+}
+
+.property-info h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.property-type {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.property-location {
+  margin: 0 0 1rem 0;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.property-details {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.detail:last-child {
+  margin-bottom: 0;
+}
+
+.detail .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.detail .value {
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+}
+
+.property-description {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: #fff3cd;
+  border-left: 3px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.property-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-approve,
+.btn-reject,
+.btn-view {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btn-approve {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-approve:hover {
+  background-color: #229954;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-reject {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-reject:hover {
+  background-color: #c0392b;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.btn-view {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-view:hover {
+  background-color: #2980b9;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .admin-properties-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-properties-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-filters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .property-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .property-actions {
+    flex-direction: column;
+  }
+
+  .btn-approve,
+  .btn-reject,
+  .btn-view {
+    flex: auto;
+  }
+}

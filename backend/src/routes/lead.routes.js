@@ -17,4 +17,7 @@ router.get('/property/:id', authMiddleware, leadController.getByProperty);
 // 🟡 ATUALIZAR status
 router.put('/:id/status', authMiddleware, leadController.updateStatus);
 
+// 🔴 FECHAR lead (encerrar aplicação)
+router.post('/:id/close', authMiddleware, leadController.closeLead);
+
 module.exports = router;

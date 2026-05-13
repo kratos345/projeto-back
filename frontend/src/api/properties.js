@@ -5,6 +5,8 @@ export const getProperties = (filters = {}) => {
   return client.get(`/properties?${params}`);
 };
 
+export const getAllProperties = () => client.get('/properties');
+
 export const getPropertyById = (id) => client.get(`/properties/${id}`);
 
 export const createProperty = (data) => client.post('/properties', data);

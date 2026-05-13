@@ -156,6 +156,49 @@ export default function PropertiesListPage() {
       zipCode: form.zipCode.trim()
     };
 
+    // Validações rigorosas
+    if (!payload.title || payload.title.length < 10) {
+      setError('❌ Título deve ter no mínimo 10 caracteres');
+      setSaving(false);
+      return;
+    }
+
+    if (payload.price <= 0) {
+      setError('❌ Preço deve ser maior que zero');
+      setSaving(false);
+      return;
+    }
+
+    if (!payload.address || payload.address.length < 5) {
+      setError('❌ Endereço inválido (mínimo 5 caracteres)');
+      setSaving(false);
+      return;
+    }
+
+    if (!payload.city || payload.city.length < 3) {
+      setError('❌ Cidade inválida');
+      setSaving(false);
+      return;
+    }
+
+    if (!payload.state || payload.state.length !== 2) {
+      setError('❌ Estado deve ter 2 caracteres (ex: SP)');
+      setSaving(false);
+      return;
+    }
+
+    if (payload.zipCode && !/^\d{5}-?\d{3}$/.test(payload.zipCode)) {
+      setError('❌ CEP inválido (formato: 12345-678)');
+      setSaving(false);
+      return;
+    }
+
+    if (payload.bedrooms < 0 || payload.bathrooms < 0 || payload.area < 0) {
+      setError('❌ Valores de quartos, banheiros e área não podem ser negativos');
+      setSaving(false);
+      return;
+    }
+
     try {
       let propertyId = selectedProperty?.id;
 
@@ -172,8 +215,9 @@ export default function PropertiesListPage() {
 
       await loadProperties();
       resetForm();
+      alert('✅ Imóvel salvo com sucesso!');
     } catch (err) {
-      setError('Não foi possível salvar o imóvel. Verifique os dados e tente novamente.');
+      setError('❌ Não foi possível salvar o imóvel. Verifique os dados e tente novamente.');
     } finally {
       setSaving(false);
     }

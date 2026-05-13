@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMyLeads, updateLeadStatus } from '../../api/leads';
+import { getMyLeads, updateLeadStatus, closeLead } from '../../api/leads';
 import '../../styles/leads.css';
 
 export default function LeadsPage() {
@@ -34,13 +34,27 @@ export default function LeadsPage() {
     }
   };
 
+  const handleCloseLead = async (leadId, reason) => {
+    if (!window.confirm(`Tem certeza que quer marcar como ${reason}?`)) return;
+    try {
+      await closeLead(leadId, reason);
+      setLeads(leads.map(lead =>
+        lead.id === leadId ? { ...lead, status: reason } : lead
+      ));
+    } catch (err) {
+      alert('Erro ao encerrar lead');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'novo': return '#e74c3c';
-      case 'contato_feito': return '#f39c12';
-      case 'visita_marcada': return '#3498db';
-      case 'proposta': return '#9b59b6';
+      case 'contatado': return '#f39c12';
+      case 'visita_agendada': return '#3498db';
+      case 'proposta_enviada': return '#9b59b6';
+      case 'negociando': return '#2980b9';
       case 'fechado': return '#27ae60';
+      case 'perdido': return '#7f8c8d';
       default: return '#95a5a6';
     }
   };
@@ -48,10 +62,12 @@ export default function LeadsPage() {
   const getStatusText = (status) => {
     switch (status) {
       case 'novo': return 'Novo';
-      case 'contato_feito': return 'Contato Feito';
-      case 'visita_marcada': return 'Visita Marcada';
-      case 'proposta': return 'Proposta';
+      case 'contatado': return 'Contatado';
+      case 'visita_agendada': return 'Visita Agendada';
+      case 'proposta_enviada': return 'Proposta Enviada';
+      case 'negociando': return 'Negociando';
       case 'fechado': return 'Fechado';
+      case 'perdido': return 'Perdido';
       default: return status;
     }
   };
@@ -76,10 +92,12 @@ export default function LeadsPage() {
           >
             <option value="todos">Todos os Status</option>
             <option value="novo">Novos</option>
-            <option value="contato_feito">Contato Feito</option>
-            <option value="visita_marcada">Visita Marcada</option>
-            <option value="proposta">Proposta</option>
+            <option value="contatado">Contatados</option>
+            <option value="visita_agendada">Visita Agendada</option>
+            <option value="proposta_enviada">Proposta Enviada</option>
+            <option value="negociando">Negociando</option>
             <option value="fechado">Fechados</option>
+            <option value="perdido">Perdidos</option>
           </select>
         </div>
       </header>
@@ -133,11 +151,29 @@ export default function LeadsPage() {
                     className="status-select"
                   >
                     <option value="novo">Novo</option>
-                    <option value="contato_feito">Contato Feito</option>
-                    <option value="visita_marcada">Visita Marcada</option>
-                    <option value="proposta">Proposta</option>
+                    <option value="contatado">Contatado</option>
+                    <option value="visita_agendada">Visita Agendada</option>
+                    <option value="proposta_enviada">Proposta Enviada</option>
+                    <option value="negociando">Negociando</option>
                     <option value="fechado">Fechado</option>
+                    <option value="perdido">Perdido</option>
                   </select>
+                  {lead.status !== 'fechado' && lead.status !== 'perdido' && (
+                    <div className="lead-quick-actions">
+                      <button 
+                        className="btn-success"
+                        onClick={() => handleCloseLead(lead.id, 'fechado')}
+                      >
+                        ✅ Fechar Venda
+                      </button>
+                      <button 
+                        className="btn-danger"
+                        onClick={() => handleCloseLead(lead.id, 'perdido')}
+                      >
+                        ❌ Perder Lead
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="lead-date">

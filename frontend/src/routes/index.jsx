@@ -4,6 +4,7 @@ import LoginPage       from '../pages/Auth/LoginPage'
 import RegisterPage    from '../pages/Auth/RegisterPage'
 import DashboardPage   from '../pages/Dashboard/DashboardPage'
 import UsersPage       from '../pages/Users/UsersPage'
+import AdminPage       from '../pages/Admin/AdminPage'
 import PropertiesListPage from '../pages/Properties/PropertiesListPage'
 import LeadsPage       from '../pages/Leads/LeadsPage'
 import SalesPage       from '../pages/Sales/SalesPage'
@@ -35,6 +36,7 @@ export default function AppRoutes() {
 
         {/* Rotas específicas por role */}
         <Route path="/users"    element={<RoleBasedRoute allowedRoles={['admin']}><UsersPage /></RoleBasedRoute>} />
+        <Route path="/admin"    element={<RoleBasedRoute allowedRoles={['admin']}><AdminPage /></RoleBasedRoute>} />
 
         {/* Rotas de vendedor */}
         <Route path="/properties/my"     element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
