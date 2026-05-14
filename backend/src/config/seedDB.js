@@ -7,6 +7,35 @@ const Lead = require('../models/Lead');
 
 const seedDB = async () => {
   try {
+    const userCount = await User.count();
+
+    if (userCount === 0) {
+      const passwordHash = await bcrypt.hash('123456', 10);
+
+      await Promise.all([
+        User.create({
+          name: 'Admin Teste',
+          email: 'admin@example.com',
+          password: passwordHash,
+          role: 'admin'
+        }),
+        User.create({
+          name: 'Vendedor Teste',
+          email: 'vendedor@example.com',
+          password: passwordHash,
+          role: 'vendedor'
+        }),
+        User.create({
+          name: 'Comprador Teste',
+          email: 'comprador@example.com',
+          password: passwordHash,
+          role: 'user'
+        })
+      ]);
+
+      console.log('✅ Usuários de teste criados com sucesso!');
+    }
+
     const propertyCount = await Property.count();
     if (propertyCount > 0) {
       console.log('✅ Dados já existem. Pulando seed.');
@@ -15,19 +44,11 @@ const seedDB = async () => {
 
     console.log('🌱 Iniciando seed...');
 
-    // 🔥 Buscar usuários existentes
     const users = await User.findAll({ order: [['id', 'ASC']] });
-
-    if (users.length === 0) {
-      console.log('⚠️ Nenhum usuário encontrado. Por favor, crie um usuário primeiro via registro.');
-      return;
-    }
 
     const seller1 = users.find((u) => u.role === 'vendedor') || users[0];
     const seller2 = users.find((u) => u.role === 'admin') || users[1] || users[0];
-    const seller3 = users.find((u) => u.role === 'user') || users[2] || users[0];
     const user1 = users.find((u) => u.role === 'user') || users[0];
-    const user2 = users.find((u) => u.role === 'vendedor') || users[1] || users[0];
 
     // ============================================================
     // IMÓVEIS
@@ -107,7 +128,7 @@ const seedDB = async () => {
 
     console.log('✅ Leads criados!');
 
-    console.log('\n🎉 Seed concluído SEM criar usuários!\n');
+    console.log('\n🎉 Seed concluído com sucesso!\n');
 
   } catch (error) {
     console.error('❌ Erro no seed:', error.message);

@@ -19,7 +19,7 @@ mysql -u root -p
 
 2. Crie o banco de dados:
 ```sql
-CREATE DATABASE meu_banco;
+CREATE DATABASE meu_projeto_db;
 ```
 
 3. Saia do MySQL:
@@ -37,9 +37,11 @@ cd backend
 # Instalar dependências
 npm install
 
-# Criar arquivo .env (já existe, mas verifique)
-# Abra o arquivo .env e configure:
-# DB_NAME=meu_banco
+# Criar arquivo .env a partir do exemplo
+copy .env.example .env
+
+# Abra o arquivo .env e verifique as configurações:
+# DB_NAME=meu_projeto_db
 # DB_USER=root
 # DB_PASSWORD=sua_senha
 # JWT_SECRET=sua_chave_secreta_muito_forte
@@ -48,6 +50,8 @@ npm install
 # Rodar em desenvolvimento
 npm run dev
 ```
+
+> Se estiver usando MySQL sem senha local, deixe `DB_PASSWORD=` em branco.
 
 **Esperado:**
 ```
