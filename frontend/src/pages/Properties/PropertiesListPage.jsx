@@ -245,7 +245,7 @@ export default function PropertiesListPage() {
   return (
     <>
       <PrimeVendaTheme />
-      <div className="page">
+      <div className="properties-page">
         <header className="top-bar">
           <h2>Meus Imóveis</h2>
           <button onClick={openNewForm} className="btn-gold">
@@ -558,7 +558,7 @@ export default function PropertiesListPage() {
               </button>
             </div>
           ) : (
-            <div className="card">
+            <div className="card property-table-card">
               <table className="tbl">
                 <thead>
                   <tr>

@@ -167,11 +167,19 @@ export default function SearchPage() {
               {properties.map((property) => (
                 <div key={property.id} className="property-card">
                   <div className="property-image">
-                    <span>🏠</span>
+                    {property.seller?.profileImage ? (
+                      <img src={property.seller.profileImage} alt={property.seller.name} />
+                    ) : (
+                      <span>🏠</span>
+                    )}
                   </div>
 
                   <div className="property-content">
                     <h4 className="property-title">{property.title}</h4>
+
+                    <div className="property-seller">
+                      Por: {property.seller?.name || 'Anônimo'}
+                    </div>
 
                     <div className="property-price">
                       R$ {parseFloat(property.price).toLocaleString('pt-BR')}

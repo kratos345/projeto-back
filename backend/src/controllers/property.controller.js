@@ -38,7 +38,7 @@ exports.getAll = async (req, res, next) => {
 
     const properties = await Property.findAll({
       where,
-      include: [{ model: User, as: 'seller', attributes: ['id', 'name', 'email'] }]
+      include: [{ model: User, as: 'seller', attributes: ['id', 'name', 'email', 'profileImage'] }]
     });
 
     res.json(properties);

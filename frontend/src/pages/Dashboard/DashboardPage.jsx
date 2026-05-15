@@ -5,6 +5,7 @@ import { getMyProperties, deleteProperty, getProperties } from '../../api/proper
 import { updateCurrentUser, uploadAvatar, getUsers, deleteUser } from '../../api/users';
 import { getAdminMetrics, getSellerMetrics } from '../../api/dashboard';
 import PrimeVendaTheme from '../../components/PrimeVendaTheme';
+import '../../styles/dashboard.css';
 
 const PROPERTIES = [
   { id: 1, type: 'imovel', category: 'Casa', title: 'Casa Moderna em Alphaville', price: 980000, location: 'Barueri, SP', beds: 4, baths: 3, area: 320, status: 'disponivel', seller: 'Carlos M.', image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=80', description: 'Linda casa moderna com acabamento premium, piscina, churrasqueira e jardim.', featured: true },
@@ -194,7 +195,7 @@ const Header = ({ title, role }) => (
 );
 
 // Componente para Usuário
-const UsuarioDashboard = ({ user, onUserUpdate }) => {
+const UsuarioDashboard = ({ user }) => {
   const [selected, setSelected] = useState(null);
 
   return (
@@ -241,17 +242,12 @@ const UsuarioDashboard = ({ user, onUserUpdate }) => {
         </div>
       </div>
 
-      {/* Perfil rápido */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Meu Perfil</h3>
-        <PerfilTab role="usuario" user={user} onUserUpdate={onUserUpdate} />
-      </div>
     </div>
   );
 };
 
 // Componente para Vendedor
-const VendedorDashboard = ({ user, onUserUpdate }) => {
+const VendedorDashboard = ({ user }) => {
   const [metrics, setMetrics] = useState(null);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -342,17 +338,12 @@ const VendedorDashboard = ({ user, onUserUpdate }) => {
         </div>
       </div>
 
-      {/* Perfil e configurações */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 24 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Perfil e Configurações</h3>
-        <PerfilTab role="vendedor" user={user} onUserUpdate={onUserUpdate} />
-      </div>
     </div>
   );
 };
 
 // Componente para Admin
-const AdminDashboard = ({ user, onUserUpdate }) => {
+const AdminDashboard = ({ user }) => {
   const [metrics, setMetrics] = useState(null);
   const [properties, setProperties] = useState([]);
   const [users, setUsers] = useState([]);
@@ -771,6 +762,7 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
       if (avatarFile) {
         const uploadResponse = await uploadAvatar(avatarFile);
         profileImage = uploadResponse.data.profileImage;
+        setPreview(profileImage);
       }
 
       const payload = {
