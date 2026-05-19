@@ -42,3 +42,6 @@ out/
 tmp/
 temp/
 *.tmp
+
+# SQLite database
+database.sqlite

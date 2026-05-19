@@ -108,6 +108,7 @@ const defineAssociations = () => {
 
 const initDB = async () => {
   try {
+    await sequelize.authenticate();
     defineAssociations();
 
     // Sincroniza os modelos com o banco de dados
@@ -117,7 +118,7 @@ const initDB = async () => {
     // Inserir usuários e dados de teste
     await seedDB();
   } catch (error) {
-    console.error('❌ Erro ao sincronizar banco de dados:', error.message);
+    console.error('❌ Erro ao sincronizar banco de dados:', error);
     process.exit(1);
   }
 };

@@ -29,7 +29,7 @@ const Favorite = sequelize.define('Favorite', {
   }
 }, {
   timestamps: true,
-  indexes: [{ fields: ['userId', 'itemType'] }]
+  indexes: [{ fields: ['userId', 'propertyId'] }]
 });
 
 module.exports = Favorite;

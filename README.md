@@ -4,8 +4,9 @@
 
 - Node.js v16+
 - npm
-- MySQL 5.7+ ou MariaDB
 - Visual Studio Code (opcional)
+
+> ✅ O projeto agora usa SQLite local e não depende de XAMPP ou MySQL externo.
 
 ---
 
@@ -39,33 +40,19 @@ meu-projeto/
 
 ---
 
-## ⚙️ Passo 1: Configurar Banco de Dados MySQL
+## ⚙️ Passo 1: Banco de Dados SQLite Local
 
-### Opção A: Usando MySQL Command Line
+O backend usa SQLite local e cria automaticamente o arquivo `backend/database.sqlite` na primeira execução.
 
-```bash
-# Acesse o MySQL
-mysql -u root -p
+### O que você precisa fazer
 
-# Cole o conteúdo do arquivo database.sql
-# Ou execute:
-mysql -u root -p < database.sql
-```
+- Não é necessário instalar ou configurar MySQL/XAMPP.
+- O arquivo de banco de dados é gerado automaticamente pelo backend.
 
-### Opção B: Usando MySQL Workbench
+### Se quiser limpar o banco e começar do zero
 
-1. Abra MySQL Workbench
-2. Conecte no seu servidor MySQL
-3. Abra `File > Open SQL Script`
-4. Selecione o arquivo `backend/database.sql`
-5. Clique em ⚡ (Execute)
-
-### Resultado Esperado
-
-```
-✅ Banco: meu_projeto_db criado
-✅ Tabela: Users criada com 3 usuários de exemplo
-```
+- Apague o arquivo `backend/database.sqlite`
+- Reinicie o backend com `npm run dev`
 
 ---
 

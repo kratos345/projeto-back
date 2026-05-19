@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-const uploadsRoot = path.resolve(__dirname, '../uploads');
+const uploadsRoot = path.resolve(__dirname, '../../uploads');
 
 const ensureFolder = (folder) => {
   if (!fs.existsSync(folder)) {

@@ -1,16 +1,18 @@
-﻿const { Sequelize } = require('sequelize');
+﻿const path = require('path');
+const fs = require('fs');
+const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME || 'meu_projeto_db',
-  process.env.DB_USER || 'root',
-  process.env.DB_PASSWORD || '',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 3306,
-    dialect: 'mysql',
-    logging: false,
-    pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
-  }
-);
+const storage = process.env.DB_STORAGE || path.resolve(__dirname, '../../database.sqlite');
+const storageDir = path.dirname(storage);
+
+if (!fs.existsSync(storageDir)) {
+  fs.mkdirSync(storageDir, { recursive: true });
+}
+
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage,
+  logging: false,
+});
 
 module.exports = { sequelize };
