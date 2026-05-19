@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { sequelize } = require('../config/database');
 const User = require('../models/User');
 const Property = require('../models/Property');
@@ -6,6 +8,8 @@ const Favorite = require('../models/Favorite');
 const Lead = require('../models/Lead');
 const Visit = require('../models/Visit');
 const seedDB = require('./seedDB');
+
+const storageFile = path.resolve(__dirname, '../../', process.env.DB_STORAGE || './database.sqlite');
 
 // Define Associations
 const defineAssociations = () => {
@@ -111,8 +115,18 @@ const initDB = async () => {
     await sequelize.authenticate();
     defineAssociations();
 
-    // Sincroniza os modelos com o banco de dados
-    await sequelize.sync({ alter: true });
+    try {
+      await sequelize.sync({ alter: true });
+    } catch (syncError) {
+      console.warn('⚠️ Falha no sync alter do SQLite. Recriando o banco local...');
+      if (fs.existsSync(storageFile)) {
+        await sequelize.close();
+        fs.unlinkSync(storageFile);
+        console.log(`🧹 Arquivo removido: ${storageFile}`);
+      }
+      await sequelize.sync({ force: true });
+    }
+
     console.log('✅ Banco de dados sincronizado com sucesso!');
     
     // Inserir usuários e dados de teste
