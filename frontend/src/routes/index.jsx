@@ -5,6 +5,8 @@ import RegisterPage    from '../pages/Auth/RegisterPage'
 import DashboardPage   from '../pages/Dashboard/DashboardPage'
 import UsersPage       from '../pages/Users/UsersPage'
 import AdminPage       from '../pages/Admin/AdminPage'
+import UsersPage       from '../pages/Users/UsersPage'
+import EditUserPage    from '../pages/Users/EditUserPage'
 import PropertiesListPage from '../pages/Properties/PropertiesListPage'
 import LeadsPage       from '../pages/Leads/LeadsPage'
 import SalesPage       from '../pages/Sales/SalesPage'
@@ -20,7 +22,8 @@ function RoleBasedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth()
   if (loading) return <p>Carregando...</p>
   if (!user) return <Navigate to="/login" replace />
-  if (!allowedRoles.includes(user.role)) return <Navigate to="/" replace />
+  const role = user.role === 'adm' ? 'admin' : user.role
+  if (!allowedRoles.includes(role)) return <Navigate to="/" replace />
   return children
 }
 
@@ -35,8 +38,9 @@ export default function AppRoutes() {
         <Route path="/"         element={<Private><DashboardPage /></Private>} />
 
         {/* Rotas específicas por role */}
-        <Route path="/users"    element={<RoleBasedRoute allowedRoles={['admin']}><UsersPage /></RoleBasedRoute>} />
-        <Route path="/admin"    element={<RoleBasedRoute allowedRoles={['admin']}><AdminPage /></RoleBasedRoute>} />
+        <Route path="/users"         element={<RoleBasedRoute allowedRoles={['admin']}><UsersPage /></RoleBasedRoute>} />
+        <Route path="/users/edit/:id" element={<RoleBasedRoute allowedRoles={['admin']}><EditUserPage /></RoleBasedRoute>} />
+        <Route path="/admin"         element={<RoleBasedRoute allowedRoles={['admin']}><AdminPage /></RoleBasedRoute>} />
 
         {/* Rotas de vendedor */}
         <Route path="/properties/my"     element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />

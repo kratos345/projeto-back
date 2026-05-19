@@ -12,10 +12,10 @@ router.get('/me', getMe);
 router.put('/me', updateMe);
 router.post('/me/avatar', upload.single('avatar'), uploadAvatar);
 
-// Apenas admins podem listar/deletar usuários
+// Apenas admins podem listar, visualizar, atualizar ou deletar usuários
 router.get('/', roleMiddleware('admin'), getAll);
-router.get('/:id', getById);
-router.put('/:id', update);
+router.get('/:id', roleMiddleware('admin'), getById);
+router.put('/:id', roleMiddleware('admin'), update);
 router.delete('/:id', roleMiddleware('admin'), remove);
 
 module.exports = router;

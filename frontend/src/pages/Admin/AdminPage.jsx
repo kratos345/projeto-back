@@ -81,6 +81,20 @@ export default function AdminPage() {
           <h2>🔧 Painel de Admin</h2>
           <p>Gerencie todos os anúncios do sistema</p>
         </div>
+        <button
+          type="button"
+          style={{
+            background: 'white',
+            color: '#4f46e5',
+            border: '1px solid rgba(79,70,229,.25)',
+            padding: '0.75rem 1rem',
+            borderRadius: 6,
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate('/users')}
+        >
+          👥 Gerenciar Usuários
+        </button>
       </header>
 
       <main className="admin-content">

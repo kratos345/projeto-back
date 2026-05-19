@@ -28,9 +28,18 @@ const PORT = process.env.PORT || 3001;
     // Sincroniza o banco de dados
     await initDB();
     
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`✅ Servidor rodando na porta ${PORT}`);
       console.log(`📝 Acesse: http://localhost:${PORT}/api/`);
+    });
+
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Porta ${PORT} em uso. Finalize o processo que está usando a porta ou altere PORT no arquivo .env.`);
+        process.exit(1);
+      }
+      console.error('❌ Erro no servidor:', error);
+      process.exit(1);
     });
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);

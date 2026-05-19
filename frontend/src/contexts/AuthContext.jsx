@@ -7,13 +7,17 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // Carregar usuário do localStorage ao montar
+  const normalizeRole = (role) => role === 'adm' ? 'admin' : role
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
     
     if (token && storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser)
+        parsed.role = normalizeRole(parsed.role)
+        setUser(parsed);
       } catch (err) {
         console.error("Erro ao restaurar usuário:", err);
         localStorage.removeItem("token");
@@ -25,9 +29,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signin = (token, userData) => {
+    const normalized = { ...userData, role: normalizeRole(userData.role) }
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(normalized));
+    setUser(normalized);
   };
 
   const signout = () => {
