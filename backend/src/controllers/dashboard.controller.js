@@ -22,35 +22,57 @@ exports.adminMetrics = async (req, res, next) => {
     const newLeads = await Lead.count({ where: { status: 'novo' } });
     const closedLeads = await Lead.count({ where: { status: 'fechado' } });
 
-    // Imóveis mais visualizados
-    const topProperties = await Property.findAll({
-      order: [['views', 'DESC']],
-      limit: 5,
-      attributes: ['id', 'title', 'views', 'price']
+    // Vendas e faturamento
+    const totalRevenue = await Property.sum('price', { where: { status: 'vendido' } }) || 0;
+    const totalSoldProperties = await Property.count({ where: { status: 'vendido' } });
+
+    const salesByCity = await Property.findAll({
+      where: { status: 'vendido' },
+      attributes: [
+        'city',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+        [sequelize.fn('SUM', sequelize.col('price')), 'revenue']
+      ],
+      group: ['city'],
+      order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']],
+      raw: true
     });
 
-    // Vendedores top
+    const topProperties = await Property.findAll({
+      where: { status: 'vendido' },
+      order: [['updatedAt', 'DESC']],
+      limit: 5,
+      attributes: ['id', 'title', 'views', 'price', 'city', 'state', 'sellerId'],
+      include: [
+        {
+          model: User,
+          as: 'seller',
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+
     const topSellers = await User.findAll({
       where: { role: 'vendedor' },
-      attributes: {
-        include: [
-          [
-            sequelize.fn('COUNT', sequelize.col('Properties.id')),
-            'totalProperties'
-          ]
-        ]
-      },
+      attributes: [
+        'id',
+        'name',
+        'email',
+        [sequelize.fn('SUM', sequelize.col('properties.price')), 'revenue'],
+        [sequelize.fn('COUNT', sequelize.col('properties.id')), 'soldProperties']
+      ],
       include: [
         {
           model: Property,
+          as: 'properties',
+          where: { status: 'vendido' },
           attributes: [],
           required: false
         }
       ],
       group: ['User.id'],
-      order: [[sequelize.fn('COUNT', sequelize.col('Properties.id')), 'DESC']],
+      order: [[sequelize.fn('SUM', sequelize.col('properties.price')), 'DESC']],
       limit: 5,
-      subQuery: false,
       raw: true
     });
 
@@ -71,8 +93,13 @@ exports.adminMetrics = async (req, res, next) => {
         new: newLeads,
         closed: closedLeads
       },
-      topProperties,
-      topSellers
+      sales: {
+        totalRevenue: Number(totalRevenue),
+        totalSoldProperties,
+        salesByCity,
+        topSellers,
+        recentSales: topProperties
+      }
     });
   } catch (err) {
     next(err);
@@ -105,6 +132,16 @@ exports.sellerMetrics = async (req, res, next) => {
     // Total de visualizações do vendedor
     const totalViews = await Property.sum('views', { where: { sellerId: id } });
 
+    const soldPropertiesList = await Property.findAll({
+      where: { sellerId: id, status: 'vendido' },
+      attributes: ['id', 'title', 'price', 'city', 'state', 'updatedAt'],
+      order: [['updatedAt', 'DESC']],
+      limit: 5
+    });
+
+    const revenue = await Property.sum('price', { where: { sellerId: id, status: 'vendido' } }) || 0;
+    const averageSalePrice = soldProperties > 0 ? Number(revenue) / soldProperties : 0;
+
     res.json({
       properties: {
         total: totalProperties,
@@ -116,7 +153,10 @@ exports.sellerMetrics = async (req, res, next) => {
         perStatus: leadsPerStatus
       },
       stats: {
-        totalViews: totalViews || 0
+        totalViews: totalViews || 0,
+        revenue: Number(revenue),
+        averageSalePrice: Number(averageSalePrice.toFixed(2)),
+        recentSales: soldPropertiesList
       }
     });
   } catch (err) {

@@ -1,5 +1,9 @@
 ﻿const bcrypt = require('bcryptjs');
+const { sequelize } = require('../config/database');
 const User = require('../models/User');
+const Property = require('../models/Property');
+const Lead = require('../models/Lead');
+const SellerProfile = require('../models/SellerProfile');
 const safe = (u) => { const { password, ...rest } = u.toJSON(); return rest; };
 
 exports.getMe = async (req, res, next) => {
@@ -51,6 +55,156 @@ exports.uploadAvatar = async (req, res, next) => {
     await user.update({ profileImage: fileUrl });
 
     res.json(safe(user));
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getMyPurchases = async (req, res, next) => {
+  try {
+    const purchases = await Lead.findAll({
+      where: { buyerId: req.user.id, status: 'fechado' },
+      include: [
+        {
+          model: Property,
+          attributes: ['id', 'title', 'price', 'city', 'state', 'status', 'image']
+        },
+        {
+          model: User,
+          as: 'seller',
+          attributes: ['id', 'name', 'email']
+        }
+      ],
+      order: [['updatedAt', 'DESC']]
+    });
+
+    res.json(purchases);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getSellers = async (req, res, next) => {
+  try {
+    const sellers = await User.findAll({
+      where: { role: 'vendedor' },
+      attributes: ['id', 'name', 'email', 'company', 'creci', 'website', 'profileImage', 'status', 'createdAt'],
+      include: [
+        {
+          model: SellerProfile,
+          as: 'sellerProfile',
+          attributes: ['rating', 'totalSales', 'commissionRate', 'bio']
+        }
+      ]
+    });
+
+    const sellerStats = await Property.findAll({
+      where: { status: 'vendido' },
+      attributes: [
+        'sellerId',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'salesCount'],
+        [sequelize.fn('SUM', sequelize.col('price')), 'totalRevenue']
+      ],
+      group: ['sellerId'],
+      raw: true
+    });
+
+    const salesMap = Object.fromEntries(sellerStats.map((item) => [item.sellerId, {
+      salesCount: Number(item.salesCount || 0),
+      totalRevenue: Number(item.totalRevenue || 0)
+    }]));
+
+    const data = sellers.map((seller) => ({
+      id: seller.id,
+      name: seller.name,
+      email: seller.email,
+      company: seller.company,
+      creci: seller.creci,
+      website: seller.website,
+      profileImage: seller.profileImage,
+      status: seller.status,
+      createdAt: seller.createdAt,
+      profile: seller.sellerProfile ? {
+        rating: seller.sellerProfile.rating,
+        totalSales: seller.sellerProfile.totalSales,
+        commissionRate: seller.sellerProfile.commissionRate,
+        bio: seller.sellerProfile.bio
+      } : null,
+      salesCount: salesMap[seller.id]?.salesCount || 0,
+      totalRevenue: salesMap[seller.id]?.totalRevenue || 0
+    }));
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getSellerSales = async (req, res, next) => {
+  try {
+    const sellerId = Number(req.params.id);
+    if (Number.isNaN(sellerId)) {
+      return res.status(400).json({ message: 'ID de vendedor inválido.' });
+    }
+
+    const seller = await User.findOne({
+      where: { id: sellerId, role: 'vendedor' },
+      attributes: ['id', 'name', 'email', 'company', 'creci', 'website', 'profileImage', 'status', 'createdAt'],
+      include: [
+        {
+          model: SellerProfile,
+          as: 'sellerProfile',
+          attributes: ['rating', 'totalSales', 'commissionRate', 'bio']
+        }
+      ]
+    });
+
+    if (!seller) {
+      return res.status(404).json({ message: 'Vendedor não encontrado.' });
+    }
+
+    const soldProperties = await Property.findAll({
+      where: { sellerId, status: 'vendido' },
+      attributes: ['id', 'title', 'price', 'city', 'state', 'status', 'updatedAt']
+    });
+
+    const closedLeads = await Lead.findAll({
+      where: { sellerId, status: 'fechado' },
+      attributes: ['id', 'propertyId', 'buyerId', 'name', 'email', 'phone', 'status', 'updatedAt'],
+      order: [['updatedAt', 'DESC']],
+      limit: 20
+    });
+
+    const totalRevenue = soldProperties.reduce((sum, property) => sum + Number(property.price || 0), 0);
+    const salesCount = soldProperties.length;
+    const averageSale = salesCount > 0 ? totalRevenue / salesCount : 0;
+
+    res.json({
+      seller: {
+        id: seller.id,
+        name: seller.name,
+        email: seller.email,
+        company: seller.company,
+        creci: seller.creci,
+        website: seller.website,
+        profileImage: seller.profileImage,
+        status: seller.status,
+        createdAt: seller.createdAt,
+        profile: seller.sellerProfile ? {
+          rating: seller.sellerProfile.rating,
+          totalSales: seller.sellerProfile.totalSales,
+          commissionRate: seller.sellerProfile.commissionRate,
+          bio: seller.sellerProfile.bio
+        } : null
+      },
+      stats: {
+        salesCount,
+        totalRevenue,
+        averageSale
+      },
+      soldProperties,
+      closedLeads
+    });
   } catch (err) {
     next(err);
   }

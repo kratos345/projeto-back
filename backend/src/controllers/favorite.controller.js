@@ -6,6 +6,15 @@ exports.add = async (req, res, next) => {
     const { propertyId } = req.body;
     const userId = req.user.id;
 
+    if (!propertyId) {
+      return res.status(400).json({ message: 'propertyId é obrigatório.' });
+    }
+
+    const existing = await Favorite.findOne({ where: { userId, propertyId } });
+    if (existing) {
+      return res.status(200).json(existing);
+    }
+
     const favorite = await Favorite.create({ userId, propertyId });
     res.status(201).json(favorite);
   } catch (err) {

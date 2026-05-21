@@ -12,5 +12,7 @@ export const uploadAvatar      = (file)  => {
     }
   });
 }
+export const getSellers        = ()      => api.get('/users/sellers')
+export const getSellerSales    = (id)    => api.get(`/users/sellers/${id}/sales`)
 export const updateUser        = (id, d) => api.put(`/users/${id}`, d)
 export const deleteUser        = (id)    => api.delete(`/users/${id}`)

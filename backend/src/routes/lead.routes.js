@@ -12,12 +12,12 @@ router.get('/vendedor/meus', authMiddleware, roleMiddleware('vendedor'), leadCon
 router.get('/vendedor/metrics', authMiddleware, roleMiddleware('vendedor'), leadController.getMetrics);
 
 // 🟣 POR PROPRIEDADE
-router.get('/property/:id', authMiddleware, leadController.getByProperty);
+router.get('/property/:id', authMiddleware, roleMiddleware('vendedor', 'admin'), leadController.getByProperty);
 
 // 🟡 ATUALIZAR status
-router.put('/:id/status', authMiddleware, leadController.updateStatus);
+router.put('/:id/status', authMiddleware, roleMiddleware('vendedor', 'admin'), leadController.updateStatus);
 
 // 🔴 FECHAR lead (encerrar aplicação)
-router.post('/:id/close', authMiddleware, leadController.closeLead);
+router.post('/:id/close', authMiddleware, roleMiddleware('vendedor', 'admin'), leadController.closeLead);
 
 module.exports = router;

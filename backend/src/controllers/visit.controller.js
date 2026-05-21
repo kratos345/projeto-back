@@ -4,14 +4,44 @@ const Lead = require('../models/Lead');
 // 🟢 AGENDAR visita
 exports.create = async (req, res, next) => {
   try {
-    const { propertyId, leadId, scheduledDate, notes } = req.body;
+    const { propertyId, leadId, scheduledDate, notes, buyerId: bodyBuyerId } = req.body;
+
+    if (!propertyId || !leadId || !scheduledDate) {
+      return res.status(400).json({ message: 'propertyId, leadId e scheduledDate são obrigatórios.' });
+    }
+
+    const property = await require('../models/Property').findByPk(propertyId);
+    if (!property) {
+      return res.status(404).json({ message: 'Propriedade não encontrada.' });
+    }
+
+    const lead = await Lead.findByPk(leadId);
+    if (!lead) {
+      return res.status(404).json({ message: 'Lead não encontrado.' });
+    }
+
+    if (lead.propertyId && lead.propertyId !== property.id) {
+      return res.status(400).json({ message: 'Lead não pertence a essa propriedade.' });
+    }
+
+    const allowedStatuses = ['agendada', 'realizada', 'cancelada', 'nao_compareceu'];
+    const status = req.body.status || 'agendada';
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: `Status inválido. Use um de: ${allowedStatuses.join(', ')}` });
+    }
+
+    const buyerId = bodyBuyerId || lead.buyerId || req.user.id;
+    const sellerId = property.sellerId;
 
     const visit = await Visit.create({
       propertyId,
       leadId,
+      buyerId,
+      sellerId,
       scheduledDate,
-      notes,
-      status: 'agendada'
+      notes: notes?.trim() || null,
+      status
     });
 
     res.status(201).json(visit);

@@ -5,6 +5,10 @@ const PropertyImage = require('../models/PropertyImage');
 const Favorite = require('../models/Favorite');
 const Lead = require('../models/Lead');
 const Visit = require('../models/Visit');
+const Notification = require('../models/Notification');
+const AdminAudit = require('../models/AdminAudit');
+const SellerProfile = require('../models/SellerProfile');
+const UserSetting = require('../models/UserSetting');
 const seedDB = require('./seedDB');
 
 // Define Associations
@@ -103,6 +107,53 @@ const defineAssociations = () => {
     onDelete: 'CASCADE'
   });
 
+  // Notification Associations
+  User.hasMany(Notification, {
+    foreignKey: 'userId',
+    as: 'notifications',
+    onDelete: 'CASCADE'
+  });
+  Notification.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onDelete: 'CASCADE'
+  });
+
+  // Seller Profile Associations
+  User.hasOne(SellerProfile, {
+    foreignKey: 'userId',
+    as: 'sellerProfile',
+    onDelete: 'CASCADE'
+  });
+  SellerProfile.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onDelete: 'CASCADE'
+  });
+
+  // User Settings Associations
+  User.hasOne(UserSetting, {
+    foreignKey: 'userId',
+    as: 'settings',
+    onDelete: 'CASCADE'
+  });
+  UserSetting.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onDelete: 'CASCADE'
+  });
+
+  // Admin Audit Associations
+  User.hasMany(AdminAudit, {
+    foreignKey: 'userId',
+    as: 'auditLogs',
+    onDelete: 'CASCADE'
+  });
+  AdminAudit.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+    onDelete: 'CASCADE'
+  });
 
 };
 

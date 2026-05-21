@@ -4,6 +4,9 @@ const Property = require('../models/Property');
 const PropertyImage = require('../models/PropertyImage');
 const Favorite = require('../models/Favorite');
 const Lead = require('../models/Lead');
+const Notification = require('../models/Notification');
+const SellerProfile = require('../models/SellerProfile');
+const UserSetting = require('../models/UserSetting');
 
 const seedDB = async () => {
   try {
@@ -57,10 +60,10 @@ const seedDB = async () => {
       sellerId: seller1.id,
       title: 'Casa Moderna',
       description: 'Casa com piscina e área gourmet',
-      category: 'Casa',
+      type: 'Casa',
       price: 980000,
-      beds: 4,
-      baths: 3,
+      bedrooms: 4,
+      bathrooms: 3,
       area: 320,
       street: 'Rua das Flores',
       number: '123',
@@ -69,7 +72,7 @@ const seedDB = async () => {
       city: 'São Paulo',
       state: 'SP',
       zipCode: '01234-567',
-      status: 'disponivel',
+      status: 'ativo',
       featured: true
     });
 
@@ -77,10 +80,10 @@ const seedDB = async () => {
       sellerId: seller2.id,
       title: 'Apartamento de Luxo',
       description: 'Vista para o mar',
-      category: 'Apartamento',
+      type: 'Apartamento',
       price: 1450000,
-      beds: 3,
-      baths: 2,
+      bedrooms: 3,
+      bathrooms: 2,
       area: 140,
       street: 'Avenida Atlântica',
       number: '456',
@@ -89,7 +92,7 @@ const seedDB = async () => {
       city: 'Balneário Camboriú',
       state: 'SC',
       zipCode: '88330-000',
-      status: 'disponivel'
+      status: 'ativo'
     });
 
     console.log('✅ Imóveis criados!');
@@ -126,9 +129,31 @@ const seedDB = async () => {
       status: 'novo'
     });
 
-    console.log('✅ Leads criados!');
+    await SellerProfile.create({
+      userId: seller1.id,
+      bio: 'Vendedor com ampla experiência em imóveis residenciais e comerciais.',
+      rating: 4.9,
+      totalSales: 12,
+      commissionRate: 5.5,
+      activeSince: new Date()
+    });
 
-    console.log('\n🎉 Seed concluído com sucesso!\n');
+    await UserSetting.create({
+      userId: user1.id,
+      preferences: { darkMode: false, receiveEmails: true },
+      language: 'pt-BR',
+      notificationsEnabled: true
+    });
+
+    await Notification.create({
+      userId: user1.id,
+      type: 'welcome',
+      title: 'Bem-vindo ao sistema',
+      message: 'Seu cadastro foi criado com sucesso. Explore os imóveis e entre em contato com nossos vendedores.',
+      metadata: { target: '/dashboard' }
+    });
+
+    console.log('✅ Leads criados!');
 
   } catch (error) {
     console.error('❌ Erro no seed:', error.message);

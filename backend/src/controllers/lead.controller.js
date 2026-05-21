@@ -5,20 +5,22 @@ const Property = require('../models/Property');
 exports.create = async (req, res, next) => {
   try {
     const { propertyId, name, email, phone } = req.body;
-    const buyerId = req.user?.id || null;
+    if (!propertyId) {
+      return res.status(400).json({ message: 'propertyId é obrigatório.' });
+    }
 
-    // Validar propriedade
     const property = await Property.findByPk(propertyId);
     if (!property) {
-      return res.status(404).json({ message: 'Propriedade não encontrada' });
+      return res.status(404).json({ message: 'Propriedade não encontrada.' });
     }
 
     const lead = await Lead.create({
       propertyId,
-      buyerId,
-      name,
-      email,
-      phone,
+      sellerId: property.sellerId,
+      buyerId: req.user?.id || null,
+      name: name?.trim() || null,
+      email: email?.trim() || null,
+      phone: phone?.trim() || null,
       status: 'novo'
     });
 
@@ -38,7 +40,7 @@ exports.getByVendedor = async (req, res, next) => {
         {
           model: Property,
           where: { sellerId: id },
-          attributes: ['id', 'title', 'address']
+          attributes: ['id', 'title', 'street', 'city', 'state']
         }
       ]
     });
@@ -52,6 +54,15 @@ exports.getByVendedor = async (req, res, next) => {
 // 🟣 OBTER leads de uma propriedade específica
 exports.getByProperty = async (req, res, next) => {
   try {
+    const property = await Property.findByPk(req.params.id);
+    if (!property) {
+      return res.status(404).json({ message: 'Propriedade não encontrada.' });
+    }
+
+    if (req.user.role !== 'admin' && property.sellerId !== req.user.id) {
+      return res.status(403).json({ message: 'Acesso negado.' });
+    }
+
     const leads = await Lead.findAll({
       where: { propertyId: req.params.id }
     });

@@ -26,15 +26,18 @@ exports.getAll = async (req, res, next) => {
       pendente: 'pendente'
     };
 
-    const where = {
-      status: statusMap[status?.toString().toLowerCase()] || 'ativo'
-    };
+    const where = {};
+    if (status) {
+      where.status = statusMap[status?.toString().toLowerCase()] || status;
+    } else {
+      where.status = 'ativo';
+    }
 
     if (city) where.city = city;
     if (type) where.type = typeMap[type.toString().toLowerCase()] || type;
     if (minPrice) where.price = { [Op.gte]: parseFloat(minPrice) };
     if (maxPrice) where.price = { ...where.price, [Op.lte]: parseFloat(maxPrice) };
-    if (bedrooms) where.bedrooms = bedrooms;
+    if (bedrooms) where.bedrooms = parseInt(bedrooms, 10);
 
     const properties = await Property.findAll({
       where,
@@ -156,11 +159,28 @@ exports.update = async (req, res, next) => {
       return res.status(403).json({ message: 'Acesso negado' });
     }
 
-    const updateData = { ...req.body };
-    if (req.body.type) updateData.type = req.body.type;
-    if (req.body.bedrooms !== undefined) updateData.bedrooms = req.body.bedrooms;
-    if (req.body.bathrooms !== undefined) updateData.bathrooms = req.body.bathrooms;
-    if (req.body.address !== undefined) updateData.street = req.body.address;
+    const updateData = {};
+    const allowedFields = ['title', 'description', 'type', 'price', 'bedrooms', 'bathrooms', 'area', 'street', 'number', 'complement', 'neighborhood', 'city', 'state', 'zipCode', 'featured'];
+
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
+
+    if (req.body.address !== undefined) {
+      updateData.street = req.body.address;
+    }
+
+    if (req.body.state) {
+      updateData.state = req.body.state.trim().toUpperCase();
+    }
+
+    if (req.user.role !== 'admin') {
+      delete updateData.status;
+    } else if (req.body.status) {
+      updateData.status = req.body.status;
+    }
 
     await property.update(updateData);
     res.json(property);

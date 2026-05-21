@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyProperties, deleteProperty, getProperties } from '../../api/properties';
+import { getMyFavorites, removeFavorite } from '../../api/favorites';
+import { getMyPurchases } from '../../api/leads';
 import { updateCurrentUser, uploadAvatar, getUsers, deleteUser } from '../../api/users';
 import { getAdminMetrics, getSellerMetrics } from '../../api/dashboard';
 import PrimeVendaTheme from '../../components/PrimeVendaTheme';
@@ -70,6 +72,10 @@ const Ic = ({ name, size, color, fill, stroke }) => (
 );
 
 const fmt = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n);
+const formatDate = (value) => {
+  if (!value) return '—';
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(value));
+};
 
 const StatusBadge = ({ status }) => {
   const map = {
@@ -86,7 +92,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const TABS = {
-  usuario: ['explorar', 'favoritos', 'minhas-compras', 'perfil'],
+  usuario: ['explorar', 'favoritos', 'minhas-compras', 'configuracoes', 'perfil'],
   vendedor: ['painel', 'meus-anuncios', 'novo-anuncio', 'configuracoes', 'perfil'],
   adm: ['painel', 'anuncios', 'usuarios', 'relatorios', 'configuracoes'],
 };
@@ -889,11 +895,159 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
   );
 };
 
+const UsuarioFavoritesTab = () => {
+  const [favorites, setFavorites] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const response = await getMyFavorites();
+        setFavorites(response.data);
+      } catch (err) {
+        setError('Erro ao carregar favoritos.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFavorites();
+  }, []);
+
+  const handleRemove = async (propertyId) => {
+    try {
+      await removeFavorite(propertyId);
+      setFavorites((prev) => prev.filter((favorite) => favorite.propertyId !== propertyId));
+    } catch (err) {
+      setError('Erro ao remover favorito.');
+    }
+  };
+
+  if (loading) return <div className="fade-up"><p>Carregando favoritos...</p></div>;
+  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
+
+  return (
+    <div className="fade-up">
+      {selected && <ListingModal item={selected} onClose={() => setSelected(null)} />}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: 24, fontWeight: 600 }}>Favoritos</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Acesse seus anúncios favoritos para comparar e decidir com calma.</p>
+        </div>
+      </div>
+
+      {favorites.length === 0 ? (
+        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+          <h3>Nenhum favorito ainda</h3>
+          <p style={{ color: 'var(--muted)', margin: '16px 0' }}>Marque anúncios como favoritos para encontrá-los rapidamente.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 20 }}>
+          {favorites.map((favorite) => {
+            const item = favorite.Property || favorite.property;
+            if (!item) return null;
+            return (
+              <div key={favorite.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <img src={item.image || 'https://via.placeholder.com/400'} alt={item.title} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 14 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{item.title || 'Anúncio favorito'}</h3>
+                    <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--muted)' }}>{item.type ? `${item.type.charAt(0).toUpperCase()}${item.type.slice(1)}` : 'Imóvel'}</p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{fmt(item.price || 0)}</span>
+                    <StatusBadge status={item.status || 'disponivel'} />
+                  </div>
+                  <p style={{ margin: 0, color: 'var(--muted)', fontSize: 12 }}>{item.city || item.location || item.state || 'Localização não disponível'}</p>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button className="btn-secondary" onClick={() => setSelected(item)}>Ver detalhes</button>
+                    <button className="btn-ghost" onClick={() => handleRemove(item.id)}>Remover</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const UsuarioPurchasesTab = () => {
+  const [purchases, setPurchases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadPurchases = async () => {
+      try {
+        const response = await getMyPurchases();
+        setPurchases(response.data);
+      } catch (err) {
+        setError('Erro ao carregar suas compras.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPurchases();
+  }, []);
+
+  if (loading) return <div className="fade-up"><p>Carregando compras...</p></div>;
+  if (error) return <div className="fade-up"><p className="error">{error}</p></div>;
+
+  return (
+    <div className="fade-up">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: 24, fontWeight: 600 }}>Minhas Compras</h2>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Acompanhe seu histórico de compras concluídas e anúncios finalizados.</p>
+        </div>
+      </div>
+
+      {purchases.length === 0 ? (
+        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+          <h3>Nenhuma compra concluída</h3>
+          <p style={{ color: 'var(--muted)', margin: '16px 0' }}>Quando uma compra for finalizada, ela aparecerá aqui automaticamente.</p>
+        </div>
+      ) : (
+        <div className="card">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Anúncio</th>
+                <th>Vendedor</th>
+                <th>Preço</th>
+                <th>Status</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchases.map((purchase) => {
+                const property = purchase.Property || purchase.property || {};
+                return (
+                  <tr key={purchase.id}>
+                    <td>{property.title || 'Anúncio fechado'}</td>
+                    <td>{purchase.seller?.name || '—'}</td>
+                    <td>{fmt(property.price || 0)}</td>
+                    <td><StatusBadge status={property.status || 'vendido'} /></td>
+                    <td>{formatDate(purchase.updatedAt)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TabContent = ({ role, tab, user, onUserUpdate }) => {
   if (role === 'usuario') {
     if (tab === 'explorar') return <UsuarioDashboard user={user} onUserUpdate={onUserUpdate} />;
-    if (tab === 'favoritos') return <div className="fade-up"><h2>Favoritos</h2><p>Funcionalidade em desenvolvimento...</p></div>;
-    if (tab === 'minhas-compras') return <div className="fade-up"><h2>Minhas Compras</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'favoritos') return <UsuarioFavoritesTab />;
+    if (tab === 'minhas-compras') return <UsuarioPurchasesTab />;
     if (tab === 'configuracoes') return <SettingsTab role="usuario" user={user} />;
     if (tab === 'perfil') return <PerfilTab role="usuario" user={user} onUserUpdate={onUserUpdate} />;
   }
