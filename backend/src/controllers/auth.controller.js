@@ -29,8 +29,14 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "Nome, email e senha são obrigatórios" });
     }
 
-    const validRoles = ['user', 'vendedor', 'admin'];
-    const normalizedRole = validRoles.includes(role) ? role : 'user';
+    const roleMap = {
+      user: 'user',
+      usuario: 'user',
+      vendedor: 'vendedor',
+      admin: 'admin',
+      adm: 'admin'
+    };
+    const normalizedRole = role && roleMap[role.toLowerCase()] ? roleMap[role.toLowerCase()] : 'user';
 
     // Verificar se email já existe
     const userExists = await User.findOne({ where: { email } });

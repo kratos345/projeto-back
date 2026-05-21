@@ -32,7 +32,7 @@ EXIT;
 ## 📦 Passo 2: Configurar Backend
 
 ```bash
-cd backend
+cd frontend
 
 # Instalar dependências
 npm install

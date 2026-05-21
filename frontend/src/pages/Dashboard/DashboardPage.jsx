@@ -27,6 +27,9 @@ const VEHICLES = [
 
 const ALL_LISTINGS = [...PROPERTIES, ...VEHICLES];
 
+// Observação: anteriormente usamos mocks (ALL_LISTINGS) para a aba Explorar.
+// Agora vamos carregar os anúncios reais do backend via `getProperties()`.
+
 const USERS_MOCK = [
   { id: 1, name: 'João Silva', email: 'joao@email.com', role: 'usuario', status: 'ativo', joined: '12/01/2025', purchases: 2 },
   { id: 2, name: 'Maria Oliveira', email: 'maria@email.com', role: 'vendedor', status: 'ativo', joined: '05/03/2025', purchases: 0 },
@@ -47,7 +50,7 @@ const Icons = {
   heart: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
   bell: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9',
   logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4',
-  eye: 'M1 12s4-8 11-8 11 8-4 8-11 8-11-8-11-8z',
+  eye: 'M1 12c0 0 4-8 11-8s11 8 11 8-4 8-11 8S1 12 1 12zm11 3a3 3 0 1 1 0-6 3 3 0 0 1 0 6z',
   tag: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z',
   star: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z',
   map: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z',
@@ -203,6 +206,26 @@ const Header = ({ title, role }) => (
 // Componente para Usuário
 const UsuarioDashboard = ({ user }) => {
   const [selected, setSelected] = useState(null);
+  const [propertiesList, setPropertiesList] = useState([]);
+  const [propsLoading, setPropsLoading] = useState(false);
+  const [propsError, setPropsError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setPropsLoading(true);
+      try {
+        const res = await getProperties();
+        if (mounted) setPropertiesList(res.data || []);
+      } catch (err) {
+        console.error('Erro ao carregar propriedades:', err);
+        if (mounted) setPropsError(err.response?.data?.message || 'Erro ao carregar anúncios');
+      } finally {
+        if (mounted) setPropsLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="fade-up">
@@ -240,11 +263,13 @@ const UsuarioDashboard = ({ user }) => {
         ))}
       </div>
 
-      {/* Anúncios em destaque */}
+      {/* Anúncios em destaque (carregados do backend) */}
       <div style={{ marginBottom: 32 }}>
         <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Anúncios em Destaque</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px,1fr))', gap: 20 }}>
-          {ALL_LISTINGS.filter(i => i.featured).slice(0, 6).map((item) => <ListingCard key={item.id} item={item} onView={setSelected} />)}
+          {propsLoading && <p>Carregando anúncios...</p>}
+          {propsError && <p style={{ color: 'var(--red)' }}>{propsError}</p>}
+          {!propsLoading && !propsError && propertiesList.filter(i => i.featured).slice(0, 6).map((item) => <ListingCard key={item.id} item={item} onView={setSelected} />)}
         </div>
       </div>
 

@@ -7,7 +7,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // Carregar usuário do localStorage ao montar
-  const normalizeRole = (role) => role === 'adm' ? 'admin' : role
+  const normalizeRole = (role) => {
+    if (!role) return role;
+    const value = role.toLowerCase();
+    if (value === 'adm' || value === 'admin') return 'admin';
+    if (value === 'usuario' || value === 'user') return 'user';
+    return value;
+  }
 
   useEffect(() => {
     const token = localStorage.getItem("token");

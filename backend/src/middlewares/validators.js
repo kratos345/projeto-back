@@ -4,7 +4,7 @@ exports.validateRegister = [
   body('name').trim().notEmpty().withMessage('Nome é obrigatório.'),
   body('email').isEmail().withMessage('E-mail inválido.').normalizeEmail(),
   body('password').isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres.'),
-  body('role').optional().isIn(['user', 'vendedor', 'admin']).withMessage('Role inválido.'),
+  body('role').optional().isIn(['user', 'usuario', 'vendedor', 'admin', 'adm']).withMessage('Role inválido.'),
 ];
 
 exports.validateLogin = [
