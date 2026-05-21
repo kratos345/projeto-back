@@ -41,10 +41,21 @@ exports.getAll = async (req, res, next) => {
 
     const properties = await Property.findAll({
       where,
-      include: [{ model: User, as: 'seller', attributes: ['id', 'name', 'email', 'profileImage'] }]
+      include: [
+      { model: User, as: 'seller', attributes: ['id', 'name', 'email', 'profileImage'] },
+      { model: PropertyImage, as: 'images' }
+    ]
     });
 
-    res.json(properties);
+    const result = properties.map((property) => {
+      const item = property.toJSON();
+      return {
+        ...item,
+        image: item.images?.[0]?.url || null
+      };
+    });
+
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -60,7 +71,15 @@ exports.getByVendedor = async (req, res, next) => {
       include: [{ model: PropertyImage, as: 'images' }]
     });
 
-    res.json(properties);
+    const result = properties.map((property) => {
+      const item = property.toJSON();
+      return {
+        ...item,
+        image: item.images?.[0]?.url || null
+      };
+    });
+
+    res.json(result);
   } catch (err) {
     next(err);
   }

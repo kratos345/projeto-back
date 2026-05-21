@@ -80,6 +80,8 @@ const formatDate = (value) => {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(value));
 };
 
+const getPropertyImage = (item) => item?.image || item?.images?.[0]?.url || item?.images?.[0] || item?.seller?.profileImage || 'https://via.placeholder.com/400';
+
 const StatusBadge = ({ status }) => {
   const map = {
     disponivel: ['badge badge-green', 'Disponível'],
@@ -525,7 +527,7 @@ const ListingModal = ({ item, onClose }) => (
   <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
     <div style={{ background: 'var(--card)', borderRadius: 16, maxWidth: 600, width: '100%', maxHeight: '80vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
       <div style={{ position: 'relative' }}>
-        <img src={item.image} alt={item.title} style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
+        <img src={getPropertyImage(item)} alt={item.title} style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
         <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(0,0,0,.5)', color: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
       </div>
       <div style={{ padding: 24 }}>
@@ -544,7 +546,7 @@ const ListingModal = ({ item, onClose }) => (
 
 const ListingCard = ({ item, onView }) => (
   <div className="card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
-    <img src={item.image} alt={item.title} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: '14px 14px 0 0' }} />
+    <img src={getPropertyImage(item)} alt={item.title} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: '14px 14px 0 0' }} />
     <div style={{ padding: 16 }}>
       <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h3>
       <p style={{ color: 'var(--gold)', fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{fmt(item.price)}</p>

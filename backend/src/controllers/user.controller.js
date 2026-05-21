@@ -2,6 +2,7 @@
 const { sequelize } = require('../config/database');
 const User = require('../models/User');
 const Property = require('../models/Property');
+const PropertyImage = require('../models/PropertyImage');
 const Lead = require('../models/Lead');
 const SellerProfile = require('../models/SellerProfile');
 const safe = (u) => { const { password, ...rest } = u.toJSON(); return rest; };
@@ -67,7 +68,8 @@ exports.getMyPurchases = async (req, res, next) => {
       include: [
         {
           model: Property,
-          attributes: ['id', 'title', 'price', 'city', 'state', 'status', 'image']
+          include: [{ model: PropertyImage, as: 'images' }],
+          attributes: ['id', 'title', 'price', 'city', 'state', 'status']
         },
         {
           model: User,
@@ -78,7 +80,19 @@ exports.getMyPurchases = async (req, res, next) => {
       order: [['updatedAt', 'DESC']]
     });
 
-    res.json(purchases);
+    const result = purchases.map((purchase) => {
+      const purchaseData = purchase.toJSON();
+      const property = purchaseData.Property || {};
+      return {
+        ...purchaseData,
+        Property: {
+          ...property,
+          image: property.images?.[0]?.url || null
+        }
+      };
+    });
+
+    res.json(result);
   } catch (err) {
     next(err);
   }

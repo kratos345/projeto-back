@@ -167,8 +167,8 @@ export default function SearchPage() {
               {properties.map((property) => (
                 <div key={property.id} className="property-card">
                   <div className="property-image">
-                    {property.seller?.profileImage ? (
-                      <img src={property.seller.profileImage} alt={property.seller.name} />
+                    {property.image || property.images?.[0]?.url ? (
+                      <img src={property.image || property.images[0].url} alt={property.title} />
                     ) : (
                       <span>🏠</span>
                     )}
@@ -193,10 +193,11 @@ export default function SearchPage() {
                     </div>
 
                     <div className="property-type">
-                      {property.type === 'apartamento' && '🏢 Apartamento'}
-                      {property.type === 'casa' && '🏠 Casa'}
-                      {property.type === 'terreno' && '🌳 Terreno'}
-                      {property.type === 'comercial' && '🏬 Comercial'}
+                      {property.type?.toString().toLowerCase() === 'apartamento' && '🏢 Apartamento'}
+                      {property.type?.toString().toLowerCase() === 'casa' && '🏠 Casa'}
+                      {property.type?.toString().toLowerCase() === 'terreno' && '🌳 Terreno'}
+                      {property.type?.toString().toLowerCase() === 'comercial' && '🏬 Comercial'}
+                      {property.type?.toString().toLowerCase() === 'cobertura' && '🏘️ Cobertura'}
                     </div>
 
                     <div className="property-description">
