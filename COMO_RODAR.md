@@ -53,6 +53,11 @@ npm run dev
 
 > Se estiver usando MySQL sem senha local, deixe `DB_PASSWORD=` em branco.
 
+> Após o backend iniciar, a API estará disponível em:
+> `http://localhost:3001/api`
+>
+> Importante: este link mostra apenas a API do backend. Para ver o site, você também precisa iniciar o frontend.
+
 **Esperado:**
 ```
 ✅ Banco de dados sincronizado com sucesso!
@@ -73,6 +78,11 @@ npm install
 # Rodar em desenvolvimento
 npm run dev
 ```
+
+> O site estará disponível em:
+> `http://localhost:5173/`
+>
+> Se quiser testar a API diretamente, use `http://localhost:3001/api` após iniciar o backend.
 
 **Esperado:**
 ```
