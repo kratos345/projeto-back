@@ -9,6 +9,21 @@ const dashboardRoutes = require('./dashboard.routes');
 
 const router = Router();
 
+router.get('/', (req, res) => {
+  res.json({
+    message: 'API do backend funcionando',
+    routes: [
+      '/auth',
+      '/users',
+      '/properties',
+      '/leads',
+      '/favorites',
+      '/visits',
+      '/dashboard'
+    ]
+  });
+});
+
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/properties', propertyRoutes);
