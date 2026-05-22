@@ -33,7 +33,7 @@ export default function SalesPage() {
 
   const getSalesStats = () => {
     const totalProperties = properties.length;
-    const activeProperties = properties.filter(p => p.status === 'approved').length;
+    const activeProperties = properties.filter(p => ['ativo', 'disponivel'].includes(p.status)).length;
     const totalLeads = leads.length;
     const newLeads = leads.filter(l => l.status === 'novo').length;
     const closedDeals = leads.filter(l => l.status === 'fechado').length;
@@ -49,7 +49,7 @@ export default function SalesPage() {
 
   const getTopProperties = () => {
     return properties
-      .filter(p => p.status === 'approved')
+      .filter(p => ['ativo', 'disponivel'].includes(p.status))
       .sort((a, b) => (b.views || 0) - (a.views || 0))
       .slice(0, 5);
   };
@@ -242,7 +242,7 @@ export default function SalesPage() {
                       </button>
                       <button
                         className="btn-view"
-                        onClick={() => navigate(`/properties/my`)}
+                        onClick={() => navigate(`/properties/${property.id}`)}
                       >
                         👁️ Ver Detalhes
                       </button>

@@ -58,20 +58,10 @@ exports.adminMetrics = async (req, res, next) => {
         'id',
         'name',
         'email',
-        [sequelize.fn('SUM', sequelize.col('properties.price')), 'revenue'],
-        [sequelize.fn('COUNT', sequelize.col('properties.id')), 'soldProperties']
+        [sequelize.literal(`(SELECT SUM(price) FROM Properties WHERE sellerId = User.id AND status = 'vendido')`), 'revenue'],
+        [sequelize.literal(`(SELECT COUNT(id) FROM Properties WHERE sellerId = User.id AND status = 'vendido')`), 'soldProperties']
       ],
-      include: [
-        {
-          model: Property,
-          as: 'properties',
-          where: { status: 'vendido' },
-          attributes: [],
-          required: false
-        }
-      ],
-      group: ['User.id'],
-      order: [[sequelize.fn('SUM', sequelize.col('properties.price')), 'DESC']],
+      order: [[sequelize.literal('revenue'), 'DESC']],
       limit: 5,
       raw: true
     });

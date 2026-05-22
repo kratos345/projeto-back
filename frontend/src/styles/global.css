@@ -162,6 +162,45 @@ main p {
   margin-bottom: 1.5rem;
 }
 
+body.dark-mode {
+  background: #0b1122 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .page,
+body.dark-mode main,
+body.dark-mode .auth-form,
+body.dark-mode .dashboard-main,
+body.dark-mode .metric-card,
+body.dark-mode .list-section table,
+body.dark-mode .card,
+body.dark-mode .property-card {
+  background: #111827 !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: #1f2937 !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+body.dark-mode .top-bar,
+body.dark-mode .sidebar,
+body.dark-mode .dashboard .top-bar {
+  background: #111827 !important;
+}
+
+body.dark-mode .btn-gold,
+body.dark-mode .btn-secondary,
+body.dark-mode .action-btn {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+
 main > button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

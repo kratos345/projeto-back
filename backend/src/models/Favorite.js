@@ -10,12 +10,22 @@ const Favorite = sequelize.define('Favorite', {
 
   userId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    },
+    onDelete: 'CASCADE'
   },
 
   propertyId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'Properties',
+      key: 'id'
+    },
+    onDelete: 'CASCADE'
   },
 
   createdAt: {

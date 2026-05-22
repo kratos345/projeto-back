@@ -36,7 +36,11 @@ export default function RegisterPage() {
       signin(data.token, data.user);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao cadastrar.');
+      const response = err.response?.data;
+      const message = response?.message ||
+        (Array.isArray(response?.errors) ? response.errors.map(e => e.msg).join(', ') : null) ||
+        'Erro ao cadastrar.';
+      setError(message);
     } finally {
       setLoading(false);
     }

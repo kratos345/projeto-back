@@ -27,10 +27,14 @@ exports.getAll = async (req, res, next) => {
     };
 
     const where = {};
-    if (status) {
-      where.status = statusMap[status?.toString().toLowerCase()] || status;
+    const statusValue = status?.toString().toLowerCase();
+
+    if (statusValue && ['all', 'todos'].includes(statusValue)) {
+      // listar com todos os status
+    } else if (status) {
+      where.status = statusMap[statusValue] || status;
     } else {
-      where.status = 'ativo';
+      where.status = { [Op.in]: ['ativo', 'disponivel'] };
     }
 
     if (city) where.city = city;
@@ -49,9 +53,13 @@ exports.getAll = async (req, res, next) => {
 
     const result = properties.map((property) => {
       const item = property.toJSON();
+      const address = [item.street, item.number, item.complement].filter(Boolean).join(', ');
+      const location = [item.neighborhood, item.city, item.state].filter(Boolean).join(' • ');
       return {
         ...item,
-        image: item.images?.[0]?.url || null
+        image: item.images?.find((img) => img?.isFeatured)?.url || item.images?.[0]?.url || null,
+        address,
+        location
       };
     });
 
@@ -73,9 +81,13 @@ exports.getByVendedor = async (req, res, next) => {
 
     const result = properties.map((property) => {
       const item = property.toJSON();
+      const address = [item.street, item.number, item.complement].filter(Boolean).join(', ');
+      const location = [item.neighborhood, item.city, item.state].filter(Boolean).join(' • ');
       return {
         ...item,
-        image: item.images?.[0]?.url || null
+        image: item.images?.find((img) => img?.isFeatured)?.url || item.images?.[0]?.url || null,
+        address,
+        location
       };
     });
 
@@ -102,7 +114,16 @@ exports.getById = async (req, res, next) => {
     // Incrementar contador de views
     await property.increment('views');
 
-    res.json(property);
+    const item = property.toJSON();
+    const address = [item.street, item.number, item.complement].filter(Boolean).join(', ');
+    const location = [item.neighborhood, item.city, item.state].filter(Boolean).join(' • ');
+
+    res.json({
+      ...item,
+      image: item.images?.find((img) => img.isFeatured)?.url || item.images?.[0]?.url || null,
+      address,
+      location
+    });
   } catch (err) {
     next(err);
   }

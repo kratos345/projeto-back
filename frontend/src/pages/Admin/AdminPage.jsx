@@ -16,7 +16,7 @@ export default function AdminPage() {
 
   const loadProperties = async () => {
     try {
-      const response = await getAllProperties();
+      const response = await getAllProperties({ status: 'all' });
       setProperties(response.data);
     } catch (err) {
       setError('Erro ao carregar propriedades');
@@ -165,11 +165,11 @@ export default function AdminPage() {
                     </div>
                     <div className="detail">
                       <span className="label">Vendedor:</span>
-                      <span className="value">{property.User?.name}</span>
+                      <span className="value">{property.seller?.name}</span>
                     </div>
                     <div className="detail">
                       <span className="label">Email:</span>
-                      <span className="value">{property.User?.email}</span>
+                      <span className="value">{property.seller?.email}</span>
                     </div>
                   </div>
 

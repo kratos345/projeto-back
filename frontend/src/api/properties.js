@@ -1,11 +1,18 @@
 import client from './client';
 
-export const getProperties = (filters = {}) => {
+const buildQuery = (filters = {}) => {
   const params = new URLSearchParams(filters);
-  return client.get(`/properties?${params}`);
+  const query = params.toString();
+  return query ? `?${query}` : '';
 };
 
-export const getAllProperties = () => client.get('/properties');
+export const getProperties = (filters = {}) => {
+  return client.get(`/properties${buildQuery(filters)}`);
+};
+
+export const getAllProperties = (filters = {}) => {
+  return client.get(`/properties${buildQuery(filters)}`);
+};
 
 export const getPropertyById = (id) => client.get(`/properties/${id}`);
 

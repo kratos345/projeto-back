@@ -1,13 +1,19 @@
 const Favorite = require('../models/Favorite');
+const Property = require('../models/Property');
 
 // 🟢 ADICIONAR aos favoritos
 exports.add = async (req, res, next) => {
   try {
-    const { propertyId } = req.body;
+    const propertyId = parseInt(req.body.propertyId || req.body.property_id, 10);
     const userId = req.user.id;
 
-    if (!propertyId) {
-      return res.status(400).json({ message: 'propertyId é obrigatório.' });
+    if (!propertyId || Number.isNaN(propertyId)) {
+      return res.status(400).json({ message: 'propertyId inválido ou ausente.' });
+    }
+
+    const property = await Property.findByPk(propertyId);
+    if (!property) {
+      return res.status(404).json({ message: 'Imóvel não encontrado.' });
     }
 
     const existing = await Favorite.findOne({ where: { userId, propertyId } });
@@ -18,6 +24,9 @@ exports.add = async (req, res, next) => {
     const favorite = await Favorite.create({ userId, propertyId });
     res.status(201).json(favorite);
   } catch (err) {
+    if (err.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({ message: 'Erro ao favoritar: referência de usuário ou imóvel inválida.' });
+    }
     next(err);
   }
 };
@@ -25,10 +34,14 @@ exports.add = async (req, res, next) => {
 // 🔵 REMOVER dos favoritos
 exports.remove = async (req, res, next) => {
   try {
-    const { property_id } = req.params;
+    const propertyId = parseInt(req.params.property_id, 10);
     const userId = req.user.id;
 
-    await Favorite.destroy({ where: { userId, propertyId: property_id } });
+    if (!propertyId || Number.isNaN(propertyId)) {
+      return res.status(400).json({ message: 'property_id inválido.' });
+    }
+
+    await Favorite.destroy({ where: { userId, propertyId } });
     res.status(204).send();
   } catch (err) {
     next(err);

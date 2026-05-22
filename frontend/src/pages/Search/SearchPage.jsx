@@ -1,29 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProperties } from '../../api/properties';
+import { addFavorite } from '../../api/favorites';
+import { createLead } from '../../api/leads';
+import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/search.css';
 
+const initialFilters = {
+  city: '',
+  type: '',
+  minPrice: '',
+  maxPrice: '',
+  bedrooms: ''
+};
+
 export default function SearchPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState({
-    city: '',
-    type: '',
-    minPrice: '',
-    maxPrice: '',
-    bedrooms: ''
-  });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState(initialFilters);
+  const [favoriteLoadingId, setFavoriteLoadingId] = useState(null);
+  const [interestLoadingId, setInterestLoadingId] = useState(null);
 
   useEffect(() => {
     loadProperties();
-  }, [filters]);
+  }, [filters.city, filters.type, filters.minPrice, filters.maxPrice, filters.bedrooms]);
 
   const loadProperties = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await getProperties({
-        ...filters,
-        status: 'ativo' // Só mostrar imóveis aprovados
+        city: filters.city,
+        type: filters.type,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        bedrooms: filters.bedrooms
       });
       setProperties(response.data);
     } catch (err) {
@@ -33,19 +50,70 @@ export default function SearchPage() {
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchQuery(searchTerm.trim());
+  };
+
+  const filteredProperties = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return properties.filter((property) => {
+      if (!query) return true;
+      return [property.title, property.description, property.city, property.state, property.type, property.neighborhood, property.address]
+        .filter(Boolean)
+        .some((value) => value.toString().toLowerCase().includes(query));
+    });
+  }, [properties, searchQuery]);
+
+  const handleFavorite = async (propertyId) => {
+    if (!user) {
+      setError('Faça login para favoritar imóveis.');
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccessMessage('');
+      setFavoriteLoadingId(propertyId);
+      await addFavorite(propertyId);
+      setSuccessMessage('Imóvel adicionado aos seus favoritos.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao favoritar imóvel.');
+    } finally {
+      setFavoriteLoadingId(null);
+    }
+  };
+
+  const handleInterest = async (propertyId) => {
+    if (!user) {
+      setError('Faça login para manifestar interesse.');
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccessMessage('');
+      setInterestLoadingId(propertyId);
+      await createLead({ propertyId });
+      setSuccessMessage('Interesse registrado com sucesso! O vendedor receberá sua solicitação.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao registrar interesse.');
+    } finally {
+      setInterestLoadingId(null);
+    }
+  };
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const clearFilters = () => {
-    setFilters({
-      city: '',
-      type: '',
-      minPrice: '',
-      maxPrice: '',
-      bedrooms: ''
-    });
+    setFilters(initialFilters);
+    setSearchTerm('');
+    setSearchQuery('');
+    setError('');
+    setSuccessMessage('');
   };
 
   return (
@@ -59,6 +127,20 @@ export default function SearchPage() {
         <section className="search-filters">
           <h3>🏠 Filtros de Busca</h3>
           <div className="filters-form">
+            <form onSubmit={handleSearchSubmit} className="filter-row" style={{ gap: 12, alignItems: 'flex-end' }}>
+              <div className="filter-group" style={{ flex: 1 }}>
+                <label>Buscar</label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Título, cidade, bairro ou tipo"
+                  className="filter-input"
+                />
+              </div>
+              <button className="btn-gold" type="submit" style={{ height: 42 }}>Pesquisar</button>
+            </form>
+
             <div className="filter-row">
               <div className="filter-group">
                 <label>Cidade</label>
@@ -81,10 +163,12 @@ export default function SearchPage() {
                   className="filter-input"
                 >
                   <option value="">Todos os tipos</option>
-                  <option value="apartamento">Apartamento</option>
-                  <option value="casa">Casa</option>
-                  <option value="terreno">Terreno</option>
-                  <option value="comercial">Comercial</option>
+                  <option value="Apartamento">Apartamento</option>
+                  <option value="Casa">Casa</option>
+                  <option value="Terreno">Terreno</option>
+                  <option value="Cobertura">Cobertura</option>
+                  <option value="Comercial">Comercial</option>
+                  <option value="Galpão">Galpão</option>
                 </select>
               </div>
 
@@ -132,7 +216,7 @@ export default function SearchPage() {
 
               <div className="filter-group">
                 <label>&nbsp;</label>
-                <button onClick={clearFilters} className="btn-clear">
+                <button type="button" onClick={clearFilters} className="btn-clear">
                   🗑️ Limpar Filtros
                 </button>
               </div>
@@ -145,9 +229,15 @@ export default function SearchPage() {
           <div className="results-header">
             <h3>🏡 Imóveis Disponíveis</h3>
             <span className="results-count">
-              {properties.length} imóvel{properties.length !== 1 ? 'is' : ''} encontrado{properties.length !== 1 ? 's' : ''}
+              {filteredProperties.length} imóvel{filteredProperties.length !== 1 ? 'is' : ''} encontrado{filteredProperties.length !== 1 ? 's' : ''}
             </span>
           </div>
+
+          {successMessage && (
+            <div className="success-state">
+              <p>✅ {successMessage}</p>
+            </div>
+          )}
 
           {loading ? (
             <div className="loading-state">
@@ -157,18 +247,18 @@ export default function SearchPage() {
             <div className="error-state">
               <p>❌ {error}</p>
             </div>
-          ) : properties.length === 0 ? (
+          ) : filteredProperties.length === 0 ? (
             <div className="empty-state">
               <h4>🏠 Nenhum imóvel encontrado</h4>
-              <p>Tente ajustar os filtros de busca</p>
+              <p>Tente ajustar os filtros ou a pesquisa</p>
             </div>
           ) : (
             <div className="properties-grid">
-              {properties.map((property) => (
+              {filteredProperties.map((property) => (
                 <div key={property.id} className="property-card">
                   <div className="property-image">
-                    {property.image || property.images?.[0]?.url ? (
-                      <img src={property.image || property.images[0].url} alt={property.title} />
+                    {property.image || property.images?.find((img) => img?.isFeatured)?.url || property.images?.[0]?.url ? (
+                      <img src={property.image || property.images?.find((img) => img?.isFeatured)?.url || property.images[0].url} alt={property.title} />
                     ) : (
                       <span>🏠</span>
                     )}
@@ -186,7 +276,7 @@ export default function SearchPage() {
                     </div>
 
                     <div className="property-details">
-                      <span>🏙️ {property.city}, {property.state}</span>
+                      <span>📍 {property.address || property.location || [property.city, property.state].filter(Boolean).join(', ')}</span>
                       {property.bedrooms && <span>🛏️ {property.bedrooms} quartos</span>}
                       {property.bathrooms && <span>🚿 {property.bathrooms} banheiros</span>}
                       {property.area && <span>📐 {property.area}m²</span>}
@@ -198,21 +288,27 @@ export default function SearchPage() {
                       {property.type?.toString().toLowerCase() === 'terreno' && '🌳 Terreno'}
                       {property.type?.toString().toLowerCase() === 'comercial' && '🏬 Comercial'}
                       {property.type?.toString().toLowerCase() === 'cobertura' && '🏘️ Cobertura'}
+                      {property.type?.toString().toLowerCase() === 'galpão' && '🏭 Galpão'}
                     </div>
 
                     <div className="property-description">
-                      {property.description && property.description.length > 100
-                        ? `${property.description.substring(0, 100)}...`
-                        : property.description
+                      {property.description
+                        ? property.description.length > 100
+                          ? `${property.description.substring(0, 100)}...`
+                          : property.description
+                        : 'Descrição não informada.'
                       }
                     </div>
 
                     <div className="property-actions">
-                      <button className="btn-interest">
-                        💬 Tenho Interesse
+                      <button className="btn-interest" onClick={() => handleInterest(property.id)} disabled={interestLoadingId === property.id}>
+                        {interestLoadingId === property.id ? 'Processando...' : '💬 Tenho Interesse'}
                       </button>
-                      <button className="btn-favorite">
-                        ❤️ Favoritar
+                      <button className="btn-secondary" onClick={() => navigate(`/properties/${property.id}`)}>
+                        🔎 Ver Detalhes
+                      </button>
+                      <button className="btn-favorite" onClick={() => handleFavorite(property.id)} disabled={favoriteLoadingId === property.id}>
+                        {favoriteLoadingId === property.id ? 'Salvando...' : '❤️ Favoritar'}
                       </button>
                     </div>
                   </div>

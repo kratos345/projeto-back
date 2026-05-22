@@ -24,7 +24,8 @@ const initialFormState = {
 export default function PropertiesListPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [formError, setFormError] = useState('');
   const [formVisible, setFormVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [form, setForm] = useState(initialFormState);
@@ -56,7 +57,7 @@ export default function PropertiesListPage() {
       const response = await getMyProperties();
       setProperties(response.data);
     } catch (err) {
-      setError('Não foi possível carregar seus imóveis. Atualize a página e tente novamente.');
+      setLoadError('Não foi possível carregar seus imóveis. Atualize a página e tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -68,7 +69,7 @@ export default function PropertiesListPage() {
     setExistingImages([]);
     setNewImages([]);
     setFormVisible(false);
-    setError('');
+    setFormError('');
   }
 
   function openNewForm() {
@@ -112,6 +113,16 @@ export default function PropertiesListPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'zipCode') {
+      const raw = value.replace(/\D/g, '').slice(0, 8);
+      const formatted = raw.replace(/^(\d{5})(\d{1,3})?$/, (_, part1, part2) => {
+        return part2 ? `${part1}-${part2}` : part1;
+      });
+      setForm((prev) => ({ ...prev, zipCode: formatted }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -130,13 +141,13 @@ export default function PropertiesListPage() {
         return { ...property, images: property.images?.filter((image) => image.id !== imageId) || [] };
       }));
     } catch (err) {
-      setError('Erro ao remover imagem.');
+      setFormError('Erro ao remover imagem.');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setFormError('');
     setSaving(true);
 
     const payload = {
@@ -158,43 +169,43 @@ export default function PropertiesListPage() {
 
     // Validações rigorosas
     if (!payload.title || payload.title.length < 10) {
-      setError('❌ Título deve ter no mínimo 10 caracteres');
+      setFormError('❌ Título deve ter no mínimo 10 caracteres');
       setSaving(false);
       return;
     }
 
     if (payload.price <= 0) {
-      setError('❌ Preço deve ser maior que zero');
+      setFormError('❌ Preço deve ser maior que zero');
       setSaving(false);
       return;
     }
 
     if (!payload.address || payload.address.length < 5) {
-      setError('❌ Endereço inválido (mínimo 5 caracteres)');
+      setFormError('❌ Endereço inválido (mínimo 5 caracteres)');
       setSaving(false);
       return;
     }
 
     if (!payload.city || payload.city.length < 3) {
-      setError('❌ Cidade inválida');
+      setFormError('❌ Cidade inválida');
       setSaving(false);
       return;
     }
 
     if (!payload.state || payload.state.length !== 2) {
-      setError('❌ Estado deve ter 2 caracteres (ex: SP)');
+      setFormError('❌ Estado deve ter 2 caracteres (ex: SP)');
       setSaving(false);
       return;
     }
 
-    if (payload.zipCode && !/^\d{5}-?\d{3}$/.test(payload.zipCode)) {
-      setError('❌ CEP inválido (formato: 12345-678)');
+    if (payload.zipCode && !/^\d{5}-\d{3}$/.test(payload.zipCode)) {
+      setFormError('❌ CEP inválido (formato: 12345-678)');
       setSaving(false);
       return;
     }
 
     if (payload.bedrooms < 0 || payload.bathrooms < 0 || payload.area < 0) {
-      setError('❌ Valores de quartos, banheiros e área não podem ser negativos');
+      setFormError('❌ Valores de quartos, banheiros e área não podem ser negativos');
       setSaving(false);
       return;
     }
@@ -217,8 +228,7 @@ export default function PropertiesListPage() {
       resetForm();
       alert('✅ Imóvel salvo com sucesso!');
     } catch (err) {
-      setError('❌ Não foi possível salvar o imóvel. Verifique os dados e tente novamente.');
-    } finally {
+      setFormError('❌ Não foi possível salvar o imóvel. Verifique os dados e tente novamente.');
       setSaving(false);
     }
   };
@@ -240,7 +250,7 @@ export default function PropertiesListPage() {
   };
 
   if (loading) return <div className="page"><p>Carregando imóveis...</p></div>;
-  if (error) return <div className="page"><p className="error">{error}</p></div>;
+  if (loadError) return <div className="page"><p className="error">{loadError}</p></div>;
 
   return (
     <>
@@ -268,7 +278,7 @@ export default function PropertiesListPage() {
                 </button>
               </div>
 
-              {error && <div className="alert alert-error">{error}</div>}
+              {formError && <div className="alert alert-error">{formError}</div>}
 
               <form onSubmit={handleSubmit}>
                 <div className="form-section">

@@ -5,6 +5,7 @@ const Property = require('../models/Property');
 const PropertyImage = require('../models/PropertyImage');
 const Lead = require('../models/Lead');
 const SellerProfile = require('../models/SellerProfile');
+const UserSetting = require('../models/UserSetting');
 const safe = (u) => { const { password, ...rest } = u.toJSON(); return rest; };
 
 exports.getMe = async (req, res, next) => {
@@ -39,6 +40,55 @@ exports.updateMe = async (req, res, next) => {
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ message: 'Dados duplicados. Verifique os campos e tente novamente.' });
     }
+    next(err);
+  }
+};
+
+const getOrCreateUserSetting = async (userId) => {
+  let settings = await UserSetting.findOne({ where: { userId } });
+  if (!settings) {
+    settings = await UserSetting.create({
+      userId,
+      preferences: {
+        darkMode: false,
+        receiveEmails: true,
+        receiveSMS: false,
+        publicProfile: false,
+        autoApproveLeads: false,
+        weeklySummary: true,
+        propertyRecommendations: true
+      },
+      notificationsEnabled: true,
+      language: 'pt-BR'
+    });
+  }
+  return settings;
+};
+
+exports.getSettings = async (req, res, next) => {
+  try {
+    const settings = await getOrCreateUserSetting(req.user.id);
+    res.json(settings);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateSettings = async (req, res, next) => {
+  try {
+    const settings = await getOrCreateUserSetting(req.user.id);
+    const { preferences = {}, notificationsEnabled } = req.body;
+
+    await settings.update({
+      preferences: {
+        ...settings.preferences,
+        ...preferences
+      },
+      notificationsEnabled: typeof notificationsEnabled === 'boolean' ? notificationsEnabled : settings.notificationsEnabled
+    });
+
+    res.json(settings);
+  } catch (err) {
     next(err);
   }
 };

@@ -4,6 +4,8 @@ exports.validateRegister = [
   body('name').trim().notEmpty().withMessage('Nome é obrigatório.'),
   body('email').isEmail().withMessage('E-mail inválido.').normalizeEmail(),
   body('password').isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres.'),
+  body('confirmPassword').optional().custom((value, { req }) => value === req.body.password).withMessage('As senhas não coincidem.'),
+  body('cpfCnpj').optional().trim().isLength({ min: 11 }).withMessage('CPF/CNPJ inválido.'),
   body('role').optional().isIn(['user', 'usuario', 'vendedor', 'admin', 'adm']).withMessage('Role inválido.'),
 ];
 

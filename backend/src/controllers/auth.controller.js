@@ -4,9 +4,14 @@ const User = require('../models/User');
 const { validationResult } = require('express-validator');
 
 const generateToken = (user) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET não está configurado no servidor.');
+  }
+
   return jwt.sign(
     { id: user.id, role: user.role },
-    process.env.JWT_SECRET,
+    secret,
     { expiresIn: process.env.JWT_EXPIRES || '7d' }
   );
 };

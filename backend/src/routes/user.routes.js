@@ -1,5 +1,5 @@
 ﻿const { Router } = require('express');
-const { getAll, getById, update, updateMe, getMe, remove, uploadAvatar, getSellers, getSellerSales, getMyPurchases } = require('../controllers/user.controller');
+const { getAll, getById, update, updateMe, getMe, remove, uploadAvatar, getSellers, getSellerSales, getMyPurchases, getSettings, updateSettings } = require('../controllers/user.controller');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { roleMiddleware } = require('../middlewares/roleMiddleware');
 const { upload } = require('../middlewares/uploadMiddleware');
@@ -11,6 +11,8 @@ router.use(authMiddleware);
 router.get('/me', getMe);
 router.put('/me', updateMe);
 router.post('/me/avatar', upload.single('avatar'), uploadAvatar);
+router.get('/me/settings', getSettings);
+router.put('/me/settings', updateSettings);
 
 // Ver vendedores e vendas de vendedores
 router.get('/sellers', getSellers);
