@@ -2,29 +2,29 @@ const Property = require('../models/Property');
 const User = require('../models/User');
 const PropertyImage = require('../models/PropertyImage');
 
+const typeMap = {
+  apartamento: 'Apartamento',
+  casa: 'Casa',
+  cobertura: 'Cobertura',
+  terreno: 'Terreno',
+  comercial: 'Comercial',
+  galpao: 'Galpão',
+  'galpão': 'Galpão'
+};
+
+const statusMap = {
+  approved: 'ativo',
+  available: 'disponivel',
+  ativo: 'ativo',
+  disponivel: 'disponivel',
+  pendente: 'pendente'
+};
+
 // 🟢 LISTAR TODAS as propriedades (com filtros)
 exports.getAll = async (req, res, next) => {
   try {
     const { city, type, minPrice, maxPrice, bedrooms, status } = req.query;
     const Op = require('sequelize').Op;
-
-    const typeMap = {
-      apartamento: 'Apartamento',
-      casa: 'Casa',
-      cobertura: 'Cobertura',
-      terreno: 'Terreno',
-      comercial: 'Comercial',
-      galpao: 'Galpão',
-      'galpão': 'Galpão'
-    };
-
-    const statusMap = {
-      approved: 'ativo',
-      available: 'disponivel',
-      ativo: 'ativo',
-      disponivel: 'disponivel',
-      pendente: 'pendente'
-    };
 
     const where = {};
     const statusValue = status?.toString().toLowerCase();
@@ -135,15 +135,6 @@ exports.create = async (req, res, next) => {
     const { title, description, type, price, bedrooms, bathrooms, area, address, city, state, zipCode } = req.body;
     const sellerId = req.user.id;
 
-    const typeMap = {
-      apartamento: 'Apartamento',
-      casa: 'Casa',
-      cobertura: 'Cobertura',
-      terreno: 'Terreno',
-      comercial: 'Comercial',
-      galpao: 'Galpão',
-      'galpão': 'Galpão'
-    };
     const normalizedType = typeMap[type?.toString().toLowerCase()] || type;
     const allowedTypes = ['Casa', 'Apartamento', 'Cobertura', 'Terreno', 'Comercial', 'Galpão'];
 
