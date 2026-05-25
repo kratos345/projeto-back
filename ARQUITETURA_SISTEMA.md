@@ -51,7 +51,7 @@ SISTEMA IMOBILIÁRIO
 │       ├── Visit
 │       └── Message
 │
-└── 🗄️ BANCO DE DADOS (MySQL)
+└── 🗄️ BANCO DE DADOS (SQLite local)
     ├── Users
     ├── Properties
     ├── Leads

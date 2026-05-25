@@ -305,9 +305,6 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-    grid-template-columns: repeat(auto-fill, minmax(350px,1fr));
-  }
-}
 
 @media (max-width: 768px) {
   .admin-properties-grid {

@@ -2,26 +2,11 @@
 
 ## 🎯 4 PASSOS RÁPIDOS
 
-### **Passo 1️⃣: Criar Banco de Dados**
+### **Passo 1️⃣: Usar SQLite local**
 
-Abra MySQL e execute este comando (ou copie o arquivo `backend/database.sql`):
+O backend já está preparado para SQLite. O arquivo `backend/database.sqlite` será criado automaticamente na primeira execução.
 
-```sql
-CREATE DATABASE IF NOT EXISTS meu_projeto_db;
-USE meu_projeto_db;
-CREATE TABLE IF NOT EXISTS Users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'vendedor', 'user') DEFAULT 'user',
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO Users (name, email, password, role) VALUES 
-('Admin', 'admin@example.com', '$2a$10$YIjlrKxI2/p0/dD.q1J2l.0LPXjvwcpAr7e.6Ufkz0aEJZ2S8L8d2', 'admin');
-```
+Não é mais necessário configurar MySQL, XAMPP ou MariaDB.
 
 ✅ **Usuário de teste:** `admin@example.com` / `123456`
 
@@ -39,13 +24,11 @@ cp .env.example .env
 npm install
 ```
 
-Edite `.env` com suas credenciais do MySQL:
+Edite `.env` apenas se quiser customizar o caminho do arquivo SQLite:
 ```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=sua_senha
-DB_NAME=meu_projeto_db
+DB_STORAGE=./database.sqlite
 JWT_SECRET=qualquer_chave_secreta
+CLIENT_URL=http://localhost:5173
 ```
 
 ---
@@ -136,7 +119,7 @@ Papel: user
 ## 📁 Arquivos Criados/Modificados
 
 ### Novo banco de dados
-- `backend/database.sql` - Script SQL
+- `backend/database.sqlite` - Banco SQLite local gerado automaticamente
 - `backend/src/config/initDB.js` - Inicialização automática
 
 ### CSS Melhorado
@@ -160,10 +143,9 @@ Papel: user
 
 ## 🐛 Se der erro:
 
-1. **"Access Denied"** → Verifique usuário/senha MySQL
-2. **"Cannot find module"** → Execute `npm install`
-3. **"Connection refused"** → Backend não está rodando
-4. **Banco não sincroniza** → Confira credenciais `.env`
+1. **"Cannot find module"** → Execute `npm install`
+2. **"Connection refused"** → Backend não está rodando
+3. **Banco não sincroniza** → Remova `backend/database.sqlite` e reinicie o backend para regenerar o banco
 
 ---
 

@@ -61,6 +61,8 @@ const tabTitles = {
   relatorios: 'Relatórios'
 };
 
+const getErrorMessage = (err, fallback) => err?.response?.data?.message || err?.message || fallback;
+
 const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
   <div className="sidebar" style={{ width: 230, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
     <div style={{ marginBottom: 32 }}>
@@ -229,7 +231,7 @@ const SettingsTab = ({ role, user }) => {
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error('Erro ao salvar configurações:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Erro ao salvar configurações.');
+      setError(getErrorMessage(err, 'Erro ao salvar configurações.'));
     }
   };
 
@@ -318,7 +320,7 @@ const MeusAnunciosTab = () => {
         const response = await getMyProperties();
         setProperties(response.data);
       } catch (err) {
-        setError('Não foi possível carregar seus anúncios.');
+        setError(getErrorMessage(err, 'Não foi possível carregar seus anúncios.'));
       } finally {
         setLoading(false);
       }
@@ -477,7 +479,7 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
       setPreview(response.data.profileImage || '');
     } catch (err) {
       console.error('Erro ao salvar perfil:', err);
-      setError(err?.response?.data?.message || 'Erro ao atualizar perfil.');
+      setError(getErrorMessage(err, 'Erro ao atualizar perfil.'));
     } finally {
       setSaving(false);
     }
@@ -595,7 +597,7 @@ const UsuarioFavoritesTab = () => {
         const response = await getMyFavorites();
         setFavorites(response.data);
       } catch (err) {
-        setError('Erro ao carregar favoritos.');
+        setError(getErrorMessage(err, 'Erro ao carregar favoritos.'));
       } finally {
         setLoading(false);
       }
@@ -608,7 +610,7 @@ const UsuarioFavoritesTab = () => {
       await removeFavorite(propertyId);
       setFavorites((prev) => prev.filter((favorite) => favorite.propertyId !== propertyId));
     } catch (err) {
-      setError('Erro ao remover favorito.');
+      setError(getErrorMessage(err, 'Erro ao remover favorito.'));
     }
   };
 
@@ -673,7 +675,7 @@ const UsuarioPurchasesTab = () => {
         const response = await getMyPurchases();
         setPurchases(response.data);
       } catch (err) {
-        setError('Erro ao carregar suas compras.');
+        setError(getErrorMessage(err, 'Erro ao carregar suas compras.'));
       } finally {
         setLoading(false);
       }

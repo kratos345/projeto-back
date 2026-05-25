@@ -10,6 +10,7 @@ const UserSetting = require('../models/UserSetting');
 
 const seedDB = async () => {
   try {
+    const shouldSeedProperties = process.env.SEED_DB === 'true';
     const userCount = await User.count();
 
     if (userCount === 0) {
@@ -40,6 +41,19 @@ const seedDB = async () => {
     }
 
     const propertyCount = await Property.count();
+    if (!shouldSeedProperties) {
+      const deleted = await Property.destroy({
+        where: {
+          title: ['Casa Moderna', 'Apartamento de Luxo']
+        }
+      });
+      if (deleted > 0) {
+        console.log('✅ Propriedades de seed falsas removidas.');
+      }
+      console.log('⚠️ Seed de propriedades desativado. Nenhum anúncio falso será criado.');
+      return;
+    }
+
     if (propertyCount > 0) {
       console.log('✅ Dados já existem. Pulando seed.');
       return;

@@ -29,12 +29,12 @@ exports.getAll = async (req, res, next) => {
     const where = {};
     const statusValue = status?.toString().toLowerCase();
 
-    if (statusValue && ['all', 'todos'].includes(statusValue)) {
-      // listar com todos os status
-    } else if (status) {
-      where.status = statusMap[statusValue] || status;
-    } else {
+    if (!status) {
       where.status = { [Op.in]: ['ativo', 'disponivel'] };
+    } else if (['all', 'todos'].includes(statusValue)) {
+      // manter todos os status sem filtro
+    } else {
+      where.status = statusMap[statusValue] || statusValue;
     }
 
     if (city) where.city = city;
@@ -135,13 +135,29 @@ exports.create = async (req, res, next) => {
     const { title, description, type, price, bedrooms, bathrooms, area, address, city, state, zipCode } = req.body;
     const sellerId = req.user.id;
 
+    const typeMap = {
+      apartamento: 'Apartamento',
+      casa: 'Casa',
+      cobertura: 'Cobertura',
+      terreno: 'Terreno',
+      comercial: 'Comercial',
+      galpao: 'Galpão',
+      'galpão': 'Galpão'
+    };
+    const normalizedType = typeMap[type?.toString().toLowerCase()] || type;
+    const allowedTypes = ['Casa', 'Apartamento', 'Cobertura', 'Terreno', 'Comercial', 'Galpão'];
+
     // Validações rigorosas
     if (!title || title.trim().length < 10) {
       return res.status(400).json({ message: 'Título deve ter no mínimo 10 caracteres' });
     }
 
-    if (!price || price <= 0) {
+    if (!price || Number(price) <= 0) {
       return res.status(400).json({ message: 'Preço deve ser maior que zero' });
+    }
+
+    if (!allowedTypes.includes(normalizedType)) {
+      return res.status(400).json({ message: 'Tipo de imóvel inválido' });
     }
 
     if (!address || address.trim().length < 5) {
@@ -163,8 +179,8 @@ exports.create = async (req, res, next) => {
     const property = await Property.create({
       title: title.trim(),
       description: description?.trim() || '',
-      type,
-      price,
+      type: normalizedType,
+      price: Number(price),
       bedrooms: bedrooms || 0,
       bathrooms: bathrooms || 0,
       area: area || 0,
@@ -219,7 +235,12 @@ exports.update = async (req, res, next) => {
     if (req.user.role !== 'admin') {
       delete updateData.status;
     } else if (req.body.status) {
-      updateData.status = req.body.status;
+      const allowedStatuses = ['disponivel', 'negociando', 'vendido', 'arquivado', 'pendente', 'ativo'];
+      const normalizedStatus = statusMap[req.body.status?.toString().toLowerCase()] || req.body.status.toString().toLowerCase();
+      if (!allowedStatuses.includes(normalizedStatus)) {
+        return res.status(400).json({ message: 'Status inválido para atualização.' });
+      }
+      updateData.status = normalizedStatus;
     }
 
     await property.update(updateData);

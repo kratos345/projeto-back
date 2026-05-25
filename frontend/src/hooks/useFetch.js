@@ -9,7 +9,7 @@ export function useFetch(fn, deps = []) {
     setLoading(true)
     fn()
       .then((r) => setData(r.data))
-      .catch((e) => setError(e.response?.data?.message || 'Erro ao carregar.'))
+      .catch((e) => setError(e?.response?.data?.message || e?.message || 'Erro ao carregar.'))
       .finally(() => setLoading(false))
   }, deps)
 

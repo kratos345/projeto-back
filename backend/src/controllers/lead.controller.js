@@ -83,6 +83,11 @@ exports.updateStatus = async (req, res, next) => {
       return res.status(404).json({ message: 'Lead não encontrado' });
     }
 
+    // Permitir alteração apenas pelo vendedor responsável ou admin
+    if (req.user.role !== 'admin' && lead.sellerId !== req.user.id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
     // Validar status permitidos
     const validStatuses = ['novo', 'contatado', 'visita_agendada', 'proposta_enviada', 'negociando', 'fechado', 'perdido'];
     if (!validStatuses.includes(status)) {
@@ -104,6 +109,11 @@ exports.closeLead = async (req, res, next) => {
 
     if (!lead) {
       return res.status(404).json({ message: 'Lead não encontrado' });
+    }
+
+    // Permitir alteração apenas pelo vendedor responsável ou admin
+    if (req.user.role !== 'admin' && lead.sellerId !== req.user.id) {
+      return res.status(403).json({ message: 'Acesso negado' });
     }
 
     const validReasons = ['fechado', 'perdido'];

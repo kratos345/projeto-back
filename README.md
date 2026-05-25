@@ -23,7 +23,7 @@ meu-projeto/
 │   │   ├── routes/
 │   │   ├── utils/
 │   │   └── server.js  # Entry point
-│   ├── database.sql   # Script SQL de inicialização
+│   ├── database.sqlite   # SQLite local gerado automaticamente
 │   └── package.json
 │
 └── frontend/          # React + Vite
@@ -75,15 +75,11 @@ cd backend
 cp .env.example .env
 ```
 
-### 2.2 Editar `.env` com suas credenciais
+### 2.2 Editar `.env` para rodar com SQLite local
 
-```env
+```bash
 # Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=sua_senha_mysql
-DB_NAME=meu_projeto_db
+DB_STORAGE=./database.sqlite
 
 # JWT
 JWT_SECRET=sua_chave_secreta_super_segura_123
@@ -200,7 +196,7 @@ curl http://localhost:3001/api/health
 
 ### Erro: "ER_ACCESS_DENIED_FOR_USER"
 - Verifique usuário e senha no `.env`
-- Certifique-se de que MySQL está rodando
+- Este erro não deve ocorrer em SQLite local, mas confira se não há configuração remanescente de MySQL
 
 ### Erro: "ECONNREFUSED"
 - Backend não está rodando
@@ -263,10 +259,9 @@ npm run preview # Visualiza build
 Se encontrar problemas:
 
 1. Verifique os logs no terminal
-2. Confirme que MySQL está rodando
-3. Valide as credenciais em `.env`
-4. Verifique a conexão de internet
-5. Limpe cache (Ctrl+Shift+Del no navegador)
+2. Confirme que o backend está rodando
+3. Valide as variáveis no `.env`
+4. Limpe cache (Ctrl+Shift+Del no navegador)
 
 ---
 

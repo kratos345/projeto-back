@@ -2,7 +2,7 @@
 
 ## ⚡ Quick Start
 
-### 1️⃣ Backend (Node.js + MySQL)
+### 1️⃣ Backend (Node.js + SQLite local)
 
 ```bash
 cd backend
@@ -269,11 +269,10 @@ Veja os arquivos na raiz do projeto:
 ## ✅ Checklist antes de começar
 
 - [ ] Node.js 14+ instalado
-- [ ] MySQL 5.7+ rodando
-- [ ] Credenciais MySQL corretas em `.env` ou `database.js`
 - [ ] Dependências instaladas (`npm install`)
 - [ ] Portas 3001 e 5173 disponíveis
-- [ ] Banco de dados `primevenda` criado
+- [ ] `backend/database.sqlite` pode ser gerado automaticamente na primeira execução
+- [ ] Variáveis de ambiente no `.env` configuradas corretamente
 
 ---
 

@@ -3,36 +3,22 @@
 ## 📋 Pré-requisitos
 
 - Node.js 16+
-- MySQL 5.7+ (ou MariaDB)
 - npm ou yarn
 
 ---
 
-## 🛠️ Passo 1: Configurar Banco de Dados
+## 🛠️ Passo 1: Usar SQLite local
 
-### Windows/Mac/Linux:
+O backend usa SQLite local e gera automaticamente o arquivo `backend/database.sqlite` na primeira execução.
 
-1. Abra o MySQL:
-```bash
-mysql -u root -p
-```
-
-2. Crie o banco de dados:
-```sql
-CREATE DATABASE meu_projeto_db;
-```
-
-3. Saia do MySQL:
-```sql
-EXIT;
-```
+Não é necessário instalar MySQL, MariaDB ou XAMPP.
 
 ---
 
 ## 📦 Passo 2: Configurar Backend
 
 ```bash
-cd frontend
+cd backend
 
 # Instalar dependências
 npm install
@@ -41,17 +27,13 @@ npm install
 copy .env.example .env
 
 # Abra o arquivo .env e verifique as configurações:
-# DB_NAME=meu_projeto_db
-# DB_USER=root
-# DB_PASSWORD=sua_senha
+# DB_STORAGE=./database.sqlite
 # JWT_SECRET=sua_chave_secreta_muito_forte
 # CLIENT_URL=http://localhost:5173
 
 # Rodar em desenvolvimento
 npm run dev
 ```
-
-> Se estiver usando MySQL sem senha local, deixe `DB_PASSWORD=` em branco.
 
 > Após o backend iniciar, a API estará disponível em:
 > `http://localhost:3001/api`

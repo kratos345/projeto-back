@@ -105,11 +105,10 @@ Você deve ver:
 - [ ] Se não, inicie com `npm run dev`
 
 ### Erro 2: Banco de dados não conecta
-- [ ] MySQL está rodando?
-  - Windows: Serviços → MySQL → Iniciar
-  - Mac: System Preferences → MySQL
+- [ ] O backend está rodando?
+- [ ] O arquivo `backend/database.sqlite` foi gerado?
 - [ ] Credenciais corretas no `.env`?
-- [ ] Banco `meu_banco` existe?
+- [ ] Reinicie o backend para regenerar o banco se necessário
 
 ### Erro 3: E-mail já existe
 - [ ] Erro diz "Email já existe"?

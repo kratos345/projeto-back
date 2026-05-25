@@ -51,7 +51,14 @@ export default function EditUserPage() {
           password: ''
         })
       } catch (err) {
-        setError(err.response?.data?.message || 'Não foi possível carregar o usuário.')
+        const status = err.response?.status
+        if (status === 404) {
+          setError('Usuário não encontrado.')
+        } else if (status === 403) {
+          setError('Acesso negado. Você não tem permissão para ver este usuário.')
+        } else {
+          setError('Não foi possível carregar o usuário. Tente novamente mais tarde.')
+        }
       } finally {
         setLoading(false)
       }
