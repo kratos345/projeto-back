@@ -242,3 +242,6 @@ meu-projeto/
 - ✅ Código limpo sem duplicatas
 
 **Bom desenvolvimento!** 🚀
+
+
+agora na area de usuarios faça um crud sobre os usuarios com algumas informações basicas e a opção de bloquear usuario excluir e atualizar certo faça coisas queum administrador tem acesso de direito ok

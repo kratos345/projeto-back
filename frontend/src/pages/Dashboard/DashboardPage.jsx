@@ -11,23 +11,16 @@ import '../../styles/dashboard.css';
 import UsuarioDashboard from './components/UsuarioDashboard';
 import VendedorDashboard from './components/VendedorDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import UsersPage from '../Users/UsersPage';
 import { Ic, fmt, formatDate, StatusBadge, ListingModal, ListingCard, StatCard } from './components/DashboardHelpers';
 
 // Observação: anteriormente usamos mocks para a aba Explorar.
 // Agora a aba Explorar deve carregar apenas anúncios reais criados no backend.
 
-const USERS_MOCK = [
-  { id: 1, name: 'João Silva', email: 'joao@email.com', role: 'usuario', status: 'ativo', joined: '12/01/2025', purchases: 2 },
-  { id: 2, name: 'Maria Oliveira', email: 'maria@email.com', role: 'vendedor', status: 'ativo', joined: '05/03/2025', purchases: 0 },
-  { id: 3, name: 'Carlos Mendes', email: 'carlos@email.com', role: 'vendedor', status: 'ativo', joined: '20/11/2024', purchases: 0 },
-  { id: 4, name: 'Ana Santos', email: 'ana@email.com', role: 'usuario', status: 'inativo', joined: '08/06/2024', purchases: 1 },
-  { id: 5, name: 'Roberto Faria', email: 'roberto@email.com', role: 'vendedor', status: 'ativo', joined: '15/09/2024', purchases: 0 },
-];
-
 const TABS = {
   usuario: ['explorar', 'favoritos', 'minhas-compras', 'configuracoes', 'perfil'],
   vendedor: ['painel', 'meus-anuncios', 'novo-anuncio', 'configuracoes', 'perfil'],
-  adm: ['painel', 'anuncios', 'usuarios', 'relatorios', 'configuracoes'],
+  adm: ['painel', 'usuarios', 'perfil', 'relatorios', 'configuracoes'],
 };
 
 const TAB_META = {
@@ -752,8 +745,8 @@ const TabContent = ({ role, tab, user, onUserUpdate }) => {
 
   if (role === 'adm') {
     if (tab === 'painel') return <AdminDashboard user={user} onUserUpdate={onUserUpdate} />;
-    if (tab === 'anuncios') return <div className="fade-up"><h2>Anúncios</h2><p>Funcionalidade em desenvolvimento...</p></div>;
-    if (tab === 'usuarios') return <div className="fade-up"><h2>Usuários</h2><p>Funcionalidade em desenvolvimento...</p></div>;
+    if (tab === 'usuarios') return <UsersPage />;
+    if (tab === 'perfil') return <PerfilTab role="adm" user={user} onUserUpdate={onUserUpdate} />;
     if (tab === 'relatorios') return <div className="fade-up"><h2>Relatórios</h2><p>Funcionalidade em desenvolvimento...</p></div>;
     if (tab === 'configuracoes') return <SettingsTab role="adm" user={user} />;
   }

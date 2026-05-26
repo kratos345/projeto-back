@@ -5,7 +5,7 @@ exports.validateRegister = [
   body('email').isEmail().withMessage('E-mail inválido.').normalizeEmail(),
   body('password').isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres.'),
   body('confirmPassword').optional().custom((value, { req }) => value === req.body.password).withMessage('As senhas não coincidem.'),
-  body('cpfCnpj').optional().trim().isLength({ min: 11 }).withMessage('CPF/CNPJ inválido.'),
+  body('cpfCnpj').optional({ nullable: true, checkFalsy: true }).trim().isLength({ min: 11 }).withMessage('CPF/CNPJ inválido.'),
   body('role').optional().isIn(['user', 'usuario', 'vendedor', 'admin', 'adm']).withMessage('Role inválido.'),
 ];
 
@@ -21,6 +21,7 @@ exports.validatePropertyCreate = [
   body('address').trim().isLength({ min: 5 }).withMessage('Endereço deve ter no mínimo 5 caracteres.'),
   body('city').trim().isLength({ min: 3 }).withMessage('Cidade deve ter no mínimo 3 caracteres.'),
   body('state').trim().matches(/^[A-Z]{2}$/).withMessage('Estado deve ter 2 letras maiúsculas.'),
+  body('status').optional().isIn(['disponivel', 'negociando', 'vendido', 'arquivado', 'pendente', 'ativo']).withMessage('Status de imóvel inválido.'),
   body('bedrooms').optional().isInt({ min: 0 }).withMessage('Quartos não pode ser negativo.'),
   body('bathrooms').optional().isInt({ min: 0 }).withMessage('Banheiros não pode ser negativo.'),
   body('area').optional().isFloat({ min: 0 }).withMessage('Área não pode ser negativa.'),
@@ -34,6 +35,7 @@ exports.validatePropertyUpdate = [
   body('address').optional().trim().isLength({ min: 5 }).withMessage('Endereço deve ter no mínimo 5 caracteres.'),
   body('city').optional().trim().isLength({ min: 3 }).withMessage('Cidade deve ter no mínimo 3 caracteres.'),
   body('state').optional().trim().matches(/^[A-Z]{2}$/).withMessage('Estado deve ter 2 letras maiúsculas.'),
+  body('status').optional().isIn(['disponivel', 'negociando', 'vendido', 'arquivado', 'pendente', 'ativo']).withMessage('Status de imóvel inválido.'),
   body('bedrooms').optional().isInt({ min: 0 }).withMessage('Quartos não pode ser negativo.'),
   body('bathrooms').optional().isInt({ min: 0 }).withMessage('Banheiros não pode ser negativo.'),
   body('area').optional().isFloat({ min: 0 }).withMessage('Área não pode ser negativa.'),

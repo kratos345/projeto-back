@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getUsers, deleteUser, updateUser } from '../../api/users'
+import { registerRequest } from '../../api/auth'
 import { useFetch } from '../../hooks/useFetch'
 import '../../styles/admin.css'
 
@@ -20,12 +21,15 @@ const STATUS_LABELS = {
 export default function UsersPage() {
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
-  const { data: users, loading, error } = useFetch(getUsers)
   const [list, setList] = useState(null)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('todos')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [message, setMessage] = useState('')
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user', cpfCnpj: '' })
+  const [createLoading, setCreateLoading] = useState(false)
+  const [createError, setCreateError] = useState('')
+  const [createSuccess, setCreateSuccess] = useState('')
 
   const handleDelete = async (id) => {
     const confirmed = window.confirm('Deseja realmente remover este usuário?')
@@ -40,7 +44,14 @@ export default function UsersPage() {
     }
   }
 
+  const { data: users, loading, error, reload } = useFetch(getUsers)
+
   const handleToggleBlock = async (targetUser) => {
+    if (currentUser?.id === targetUser.id) {
+      setMessage('Você não pode bloquear ou desbloquear seu próprio usuário.')
+      return
+    }
+
     const nextStatus = targetUser.status === 'bloqueado' ? 'ativo' : 'bloqueado'
     const action = nextStatus === 'ativo' ? 'desbloquear' : 'bloquear'
     const confirmed = window.confirm(`Deseja ${action} o usuário ${targetUser.name}?`)
@@ -55,12 +66,55 @@ export default function UsersPage() {
     }
   }
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setList(null)
     setSearch('')
     setRoleFilter('todos')
     setStatusFilter('todos')
     setMessage('')
+
+    try {
+      await reload()
+    } catch (err) {
+      setMessage('Não foi possível atualizar a lista de usuários.')
+    }
+  }
+
+  const handleNewChange = (e) => {
+    setNewUser({ ...newUser, [e.target.name]: e.target.value })
+  }
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault()
+    setCreateError('')
+    setCreateSuccess('')
+
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      setCreateError('Nome, email e senha são obrigatórios.')
+      return
+    }
+
+    if (newUser.password.length < 6) {
+      setCreateError('A senha deve ter no mínimo 6 caracteres.')
+      return
+    }
+
+    setCreateLoading(true)
+
+    try {
+      const data = await registerRequest(newUser)
+      setCreateSuccess('Usuário criado com sucesso!')
+      setNewUser({ name: '', email: '', password: '', role: 'user', cpfCnpj: '' })
+      setList((prev) => {
+        const current = prev || users || []
+        return [data.user, ...current]
+      })
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Erro ao criar usuário.'
+      setCreateError(message)
+    } finally {
+      setCreateLoading(false)
+    }
   }
 
   const usersList = list || users || []
@@ -81,14 +135,91 @@ export default function UsersPage() {
   }, [usersList, search, roleFilter, statusFilter])
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <header className="top-bar">
         <div>
           <h2>Gerenciar Usuários</h2>
           <p>Edite, bloqueie ou remova usuários com segurança.</p>
         </div>
-        <button onClick={() => navigate('/')}>Voltar</button>
+        <button className="btn-secondary" onClick={() => navigate('/')}>Voltar</button>
       </header>
+
+      <div className="card" style={{ marginBottom: 18 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Criar novo usuário</h3>
+            <p style={{ margin: '6px 0 0', color: '#4b5563' }}>Somente administradores podem criar novos usuários.</p>
+          </div>
+        </div>
+
+        {createError && <p style={{ color: '#dc2626', marginBottom: 12 }}>{createError}</p>}
+        {createSuccess && <p style={{ color: '#16a34a', marginBottom: 12 }}>{createSuccess}</p>}
+
+        <form onSubmit={handleCreateUser} style={{ display: 'grid', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <input
+              name="name"
+              value={newUser.name}
+              onChange={handleNewChange}
+              placeholder="Nome"
+              className="inp"
+              disabled={createLoading}
+            />
+            <input
+              name="email"
+              value={newUser.email}
+              onChange={handleNewChange}
+              placeholder="E-mail"
+              type="email"
+              className="inp"
+              disabled={createLoading}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <input
+              name="password"
+              value={newUser.password}
+              onChange={handleNewChange}
+              placeholder="Senha"
+              type="password"
+              className="inp"
+              disabled={createLoading}
+            />
+            <select
+              name="role"
+              value={newUser.role}
+              onChange={handleNewChange}
+              className="inp"
+              disabled={createLoading}
+              style={{ padding: '12px 10px' }}
+            >
+              <option value="user">Usuário</option>
+              <option value="vendedor">Vendedor</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'center' }}>
+            <input
+              name="cpfCnpj"
+              value={newUser.cpfCnpj}
+              onChange={handleNewChange}
+              placeholder="CPF/CNPJ"
+              className="inp"
+              disabled={createLoading}
+            />
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={createLoading}
+              style={{ width: '100%', minHeight: 44 }}
+            >
+              {createLoading ? 'Criando...' : 'Criar usuário'}
+            </button>
+          </div>
+        </form>
+      </div>
 
       <main>
         <div className="admin-filters" style={{ alignItems: 'center', marginBottom: 16 }}>
@@ -112,7 +243,7 @@ export default function UsersPage() {
             <option value="inativo">Inativo</option>
             <option value="bloqueado">Bloqueado</option>
           </select>
-          <button type="button" className="btn-approve" onClick={handleRefresh} style={{ marginLeft: 0 }}>
+          <button type="button" className="btn-secondary" onClick={handleRefresh} style={{ marginLeft: 0 }}>
             Atualizar
           </button>
         </div>
@@ -144,20 +275,25 @@ export default function UsersPage() {
                   <td>{ROLE_LABELS[u.role] || u.role}</td>
                   <td>{STATUS_LABELS[u.status] || u.status}</td>
                   <td>
-                    <button onClick={() => navigate(`/users/edit/${u.id}`)}>Editar</button>
-                    <button
-                      onClick={() => handleToggleBlock(u)}
-                      style={{ marginLeft: 8 }}
-                    >
-                      {u.status === 'bloqueado' ? 'Desbloquear' : 'Bloquear'}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(u.id)}
-                      disabled={currentUser?.id === u.id}
-                      style={{ marginLeft: 8, opacity: currentUser?.id === u.id ? 0.6 : 1 }}
-                    >
-                      Remover
-                    </button>
+                    <div className="user-actions">
+                      {u.role === 'admin' ? (
+                        <span className="admin-action-symbol">🔒 Admin protegido</span>
+                      ) : (
+                        <>
+                          <button className="btn-secondary" onClick={() => navigate(`/users/edit/${u.id}`)}>Editar</button>
+                          <button className="btn-secondary" onClick={() => handleToggleBlock(u)}>
+                            {u.status === 'bloqueado' ? 'Desbloquear' : 'Bloquear'}
+                          </button>
+                          <button
+                            className="btn-danger"
+                            onClick={() => handleDelete(u.id)}
+                            disabled={currentUser?.id === u.id}
+                          >
+                            Remover
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

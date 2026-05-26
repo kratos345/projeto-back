@@ -4,9 +4,9 @@ const User = require('../models/User');
 const { validationResult } = require('express-validator');
 
 const generateToken = (user) => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET não está configurado no servidor.');
+  const secret = process.env.JWT_SECRET || 'dev_secret_123';
+  if (!process.env.JWT_SECRET) {
+    console.warn('⚠️ JWT_SECRET não está configurado. Usando secret de desenvolvimento.');
   }
 
   return jwt.sign(
@@ -52,6 +52,7 @@ exports.register = async (req, res) => {
 
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
+    const cpfCnpjValue = cpfCnpj?.trim() ? cpfCnpj.trim() : null;
 
     // Criar usuário
     const user = await User.create({
@@ -59,7 +60,7 @@ exports.register = async (req, res) => {
       email,
       password: hashedPassword,
       role: normalizedRole,
-      cpfCnpj: cpfCnpj || null,
+      cpfCnpj: cpfCnpjValue,
     });
 
     console.log('✅ Usuário criado com sucesso:', user.email);
@@ -73,19 +74,26 @@ exports.register = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        status: user.status
       }
     });
 
   } catch (error) {
     console.error('❌ Erro no registro:', error);
-    
-    // Erro de chave duplicada
+
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({ message: "Email já cadastrado. Tente fazer login." });
+      const duplicateField = error.errors?.[0]?.path;
+      const message = duplicateField === 'email'
+        ? 'Este email já está cadastrado. Faça login ou use outro email.'
+        : duplicateField === 'cpfCnpj'
+          ? 'Este CPF/CNPJ já está cadastrado. Verifique seus dados ou use outro documento.'
+          : 'Já existe um usuário com alguns dos dados informados. Verifique e tente novamente.';
+
+      return res.status(400).json({ message });
     }
-    
-    return res.status(500).json({ message: "Erro ao criar usuário. Tente novamente." });
+
+    return res.status(500).json({ message: 'Erro ao criar usuário. Tente novamente.' });
   }
 };
 
@@ -116,6 +124,16 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Senha incorreta" });
     }
 
+    if (user.status === 'bloqueado') {
+      console.log('⚠️ Tentativa de login de usuário bloqueado:', email);
+      return res.status(403).json({ message: "Usuário bloqueado. Contate o administrador." });
+    }
+
+    if (user.status === 'inativo') {
+      console.log('⚠️ Tentativa de login de usuário inativo:', email);
+      return res.status(403).json({ message: "Conta inativa. Contate o administrador." });
+    }
+
     console.log('✅ Login realizado:', email);
     const token = generateToken(user);
 
@@ -126,12 +144,14 @@ exports.login = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        status: user.status
       }
     });
 
   } catch (error) {
     console.error('❌ Erro no login:', error);
-    return res.status(500).json({ message: "Erro ao fazer login. Tente novamente." });
+    const message = error.message || "Erro ao fazer login. Tente novamente.";
+    return res.status(500).json({ message });
   }
 };

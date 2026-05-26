@@ -33,6 +33,7 @@ export default function UsuarioDashboard({ user }) {
 
     try {
       const payload = {
+        status: 'ativo',
         ...(filters.type ? { type: filters.type } : {}),
         ...(filters.city ? { city: filters.city } : {}),
         ...(filters.minPrice ? { minPrice: filters.minPrice } : {}),

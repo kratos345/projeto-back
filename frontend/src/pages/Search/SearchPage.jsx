@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProperties } from '../../api/properties';
+import { getAllProperties } from '../../api/properties';
 import { addFavorite } from '../../api/favorites';
 import { createLead } from '../../api/leads';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,16 +35,18 @@ export default function SearchPage() {
     try {
       setLoading(true);
       setError('');
-      const response = await getProperties({
+      const response = await getAllProperties({
+        status: 'ativo',
         city: filters.city,
         type: filters.type,
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         bedrooms: filters.bedrooms
       });
-      setProperties(response.data);
+      setProperties(response.data || []);
     } catch (err) {
       setError('Erro ao carregar imóveis');
+      setProperties([]);
     } finally {
       setLoading(false);
     }
@@ -119,7 +121,10 @@ export default function SearchPage() {
   return (
     <div className="page">
       <header className="top-bar">
-        <h2>🔍 Buscar Imóveis</h2>
+        <h2>🔍 Explorar anúncios</h2>
+        <p style={{ color: 'var(--muted)', margin: 0, fontSize: 14 }}>
+          Exibindo todos os anúncios de imóveis publicados pelos vendedores.
+        </p>
       </header>
 
       <main>
@@ -254,66 +259,72 @@ export default function SearchPage() {
             </div>
           ) : (
             <div className="properties-grid">
-              {filteredProperties.map((property) => (
-                <div key={property.id} className="property-card">
-                  <div className="property-image">
-                    {property.image || property.images?.find((img) => img?.isFeatured)?.url || property.images?.[0]?.url ? (
-                      <img src={property.image || property.images?.find((img) => img?.isFeatured)?.url || property.images[0].url} alt={property.title} />
-                    ) : (
-                      <span>🏠</span>
-                    )}
+              {filteredProperties.map((property) => {
+                const imageUrl = property.image || property.images?.find((img) => img?.isFeatured)?.url || property.images?.[0]?.url || property.seller?.profileImage;
+                return (
+                  <div key={property.id} className="property-card">
+                    <div className="property-image">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={property.title}
+                        />
+                      ) : (
+                        <span>🏠</span>
+                      )}
+                    </div>
+
+                    <div className="property-content">
+                      <h4 className="property-title">{property.title}</h4>
+
+                      <div className="property-seller">
+                        Por: {property.seller?.name || 'Anônimo'}
+                      </div>
+
+                      <div className="property-price">
+                        R$ {parseFloat(property.price).toLocaleString('pt-BR')}
+                      </div>
+
+                      <div className="property-details">
+                        <span>📍 {property.address || property.location || [property.city, property.state].filter(Boolean).join(', ')}</span>
+                        {property.bedrooms && <span>🛏️ {property.bedrooms} quartos</span>}
+                        {property.bathrooms && <span>🚿 {property.bathrooms} banheiros</span>}
+                        {property.area && <span>📐 {property.area}m²</span>}
+                      </div>
+
+                      <div className="property-type">
+                        {property.type?.toString().toLowerCase() === 'apartamento' && '🏢 Apartamento'}
+                        {property.type?.toString().toLowerCase() === 'casa' && '🏠 Casa'}
+                        {property.type?.toString().toLowerCase() === 'terreno' && '🌳 Terreno'}
+                        {property.type?.toString().toLowerCase() === 'comercial' && '🏬 Comercial'}
+                        {property.type?.toString().toLowerCase() === 'cobertura' && '🏘️ Cobertura'}
+                        {property.type?.toString().toLowerCase() === 'galpão' && '🏭 Galpão'}
+                      </div>
+
+                      <div className="property-description">
+                        {property.description
+                          ? property.description.length > 100
+                            ? `${property.description.substring(0, 100)}...`
+                            : property.description
+                          : 'Descrição não informada.'
+                        }
+                      </div>
+
+                      <div className="property-actions">
+                        <button className="btn-interest" onClick={() => handleInterest(property.id)} disabled={interestLoadingId === property.id}>
+                          {interestLoadingId === property.id ? 'Processando...' : '💬 Tenho Interesse'}
+                        </button>
+                        <button className="btn-secondary" onClick={() => navigate(`/properties/${property.id}`)}>
+                          🔎 Ver Detalhes
+                        </button>
+                        <button className="btn-favorite" onClick={() => handleFavorite(property.id)} disabled={favoriteLoadingId === property.id}>
+                          {favoriteLoadingId === property.id ? 'Salvando...' : '❤️ Favoritar'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="property-content">
-                    <h4 className="property-title">{property.title}</h4>
-
-                    <div className="property-seller">
-                      Por: {property.seller?.name || 'Anônimo'}
-                    </div>
-
-                    <div className="property-price">
-                      R$ {parseFloat(property.price).toLocaleString('pt-BR')}
-                    </div>
-
-                    <div className="property-details">
-                      <span>📍 {property.address || property.location || [property.city, property.state].filter(Boolean).join(', ')}</span>
-                      {property.bedrooms && <span>🛏️ {property.bedrooms} quartos</span>}
-                      {property.bathrooms && <span>🚿 {property.bathrooms} banheiros</span>}
-                      {property.area && <span>📐 {property.area}m²</span>}
-                    </div>
-
-                    <div className="property-type">
-                      {property.type?.toString().toLowerCase() === 'apartamento' && '🏢 Apartamento'}
-                      {property.type?.toString().toLowerCase() === 'casa' && '🏠 Casa'}
-                      {property.type?.toString().toLowerCase() === 'terreno' && '🌳 Terreno'}
-                      {property.type?.toString().toLowerCase() === 'comercial' && '🏬 Comercial'}
-                      {property.type?.toString().toLowerCase() === 'cobertura' && '🏘️ Cobertura'}
-                      {property.type?.toString().toLowerCase() === 'galpão' && '🏭 Galpão'}
-                    </div>
-
-                    <div className="property-description">
-                      {property.description
-                        ? property.description.length > 100
-                          ? `${property.description.substring(0, 100)}...`
-                          : property.description
-                        : 'Descrição não informada.'
-                      }
-                    </div>
-
-                    <div className="property-actions">
-                      <button className="btn-interest" onClick={() => handleInterest(property.id)} disabled={interestLoadingId === property.id}>
-                        {interestLoadingId === property.id ? 'Processando...' : '💬 Tenho Interesse'}
-                      </button>
-                      <button className="btn-secondary" onClick={() => navigate(`/properties/${property.id}`)}>
-                        🔎 Ver Detalhes
-                      </button>
-                      <button className="btn-favorite" onClick={() => handleFavorite(property.id)} disabled={favoriteLoadingId === property.id}>
-                        {favoriteLoadingId === property.id ? 'Salvando...' : '❤️ Favoritar'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>

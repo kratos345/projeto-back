@@ -316,6 +316,9 @@ exports.remove = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: 'Usuario nao encontrado.' });
+    if (req.user.id === user.id) {
+      return res.status(400).json({ message: 'Você não pode remover seu próprio usuário.' });
+    }
     await user.destroy();
     res.status(204).send();
   } catch (err) { next(err); }

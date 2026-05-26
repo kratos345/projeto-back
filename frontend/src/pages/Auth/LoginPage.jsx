@@ -1,6 +1,6 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { loginRequest } from "../../api/auth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PrimeVendaTheme from "../../components/PrimeVendaTheme";
 
@@ -9,9 +9,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const countdownRef = useRef(null);
 
   const navigate = useNavigate();
   const { signin } = useAuth();
+
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, []);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -21,11 +32,23 @@ export default function LoginPage() {
     try {
       const data = await loginRequest(email, password);
       signin(data.token, data.user);
-      navigate("/");
+      setLoginSuccess(true);
+      setLoading(false);
+      setProgress(0);
+
+      countdownRef.current = setInterval(() => {
+        setProgress((old) => Math.min(100, old + 2));
+      }, 100);
+
+      setTimeout(() => {
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current);
+        }
+        navigate('/');
+      }, 5000);
     } catch (err) {
       const message = err.response?.data?.message || err.message || "Erro no login";
       setError(message.includes('Network Error') ? 'Erro de conexão: verifique se o backend está rodando.' : message);
-    } finally {
       setLoading(false);
     }
   };
@@ -62,6 +85,15 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
+            {loginSuccess && (
+              <div style={{ marginBottom: 20, padding: 14, borderRadius: 12, background: "rgba(56,189,248,.12)", color: "#0f766e", border: "1px solid rgba(34,197,94,.3)" }}>
+                <strong>Logado com sucesso!</strong>
+                <p style={{ margin: '8px 0 10px', fontSize: 13 }}>Aguarde enquanto redirecionamos para o painel.</p>
+                <div style={{ width: '100%', height: 10, borderRadius: 999, background: '#e5e7eb', overflow: 'hidden' }}>
+                  <div style={{ width: `${progress}%`, height: '100%', background: '#f59e0b', transition: 'width .1s ease' }} />
+                </div>
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 22 }}>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6, display: "block", letterSpacing: ".4px", textTransform: "uppercase" }}>E-mail</label>
@@ -72,7 +104,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || loginSuccess}
                 />
               </div>
               <div>
@@ -84,19 +116,18 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || loginSuccess}
                 />
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <span style={{ fontSize: 13, color: "var(--gold)", cursor: "pointer" }}>Esqueci a senha</span>
               </div>
             </div>
-            <button className="btn-gold" type="submit" disabled={loading} style={{ width: "100%", padding: 14 }}>
-              {loading ? '⏳ Entrando...' : 'Entrar'}
+            <button className="btn-gold" type="submit" disabled={loading || loginSuccess} style={{ width: "100%", padding: 14 }}>
+              {loading ? '⏳ Entrando...' : loginSuccess ? 'Aguarde...' : 'Entrar'}
             </button>
             <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--muted)" }}>
-              Não tem conta?{' '}
-              <Link style={{ color: "var(--gold)", cursor: "pointer", fontWeight: 600, textDecoration: 'none' }} to="/register">Cadastre-se</Link>
+              Novo usuário somente pode ser criado por um administrador no painel.
             </p>
           </form>
         </div>

@@ -27,13 +27,9 @@ exports.getAll = async (req, res, next) => {
     const Op = require('sequelize').Op;
 
     const where = {};
-    const statusValue = status?.toString().toLowerCase();
+    const statusValue = status?.toString().toLowerCase() || 'ativo';
 
-    if (!status) {
-      where.status = { [Op.in]: ['ativo', 'disponivel'] };
-    } else if (['all', 'todos'].includes(statusValue)) {
-      // manter todos os status sem filtro
-    } else {
+    if (statusValue && !['all', 'todos'].includes(statusValue)) {
       where.status = statusMap[statusValue] || statusValue;
     }
 
@@ -46,9 +42,16 @@ exports.getAll = async (req, res, next) => {
     const properties = await Property.findAll({
       where,
       include: [
-      { model: User, as: 'seller', attributes: ['id', 'name', 'email', 'profileImage'] },
-      { model: PropertyImage, as: 'images' }
-    ]
+        {
+          model: User,
+          as: 'seller',
+          attributes: ['id', 'name', 'email', 'profileImage', 'role'],
+          where: { role: 'vendedor' },
+          required: true
+        },
+        { model: PropertyImage, as: 'images' }
+      ],
+      order: [['createdAt', 'DESC']]
     });
 
     const result = properties.map((property) => {
@@ -102,7 +105,7 @@ exports.getById = async (req, res, next) => {
   try {
     const property = await Property.findByPk(req.params.id, {
       include: [
-        { model: User, as: 'seller', attributes: ['id', 'name', 'email'] },
+        { model: User, as: 'seller', attributes: ['id', 'name', 'email', 'profileImage'] },
         { model: PropertyImage, as: 'images' }
       ]
     });
@@ -132,7 +135,7 @@ exports.getById = async (req, res, next) => {
 // 🟢 CRIAR propriedade (vendedor)
 exports.create = async (req, res, next) => {
   try {
-    const { title, description, type, price, bedrooms, bathrooms, area, address, city, state, zipCode } = req.body;
+    const { title, description, type, price, bedrooms, bathrooms, area, address, city, state, zipCode, status } = req.body;
     const sellerId = req.user.id;
 
     const normalizedType = typeMap[type?.toString().toLowerCase()] || type;
@@ -167,6 +170,10 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ message: 'Valores não podem ser negativos' });
     }
 
+    const normalizedStatus = statusMap[status?.toString().toLowerCase()] || status?.toString().toLowerCase();
+    const allowedStatuses = ['ativo', 'pendente', 'disponivel', 'negociando', 'vendido', 'arquivado'];
+    const finalStatus = allowedStatuses.includes(normalizedStatus) ? normalizedStatus : 'ativo';
+
     const property = await Property.create({
       title: title.trim(),
       description: description?.trim() || '',
@@ -176,14 +183,14 @@ exports.create = async (req, res, next) => {
       bathrooms: bathrooms || 0,
       area: area || 0,
       street: address.trim(),
-      number: '',
-      complement: '',
-      neighborhood: '',
+      number: req.body.number?.trim() || '',
+      complement: req.body.complement?.trim() || '',
+      neighborhood: req.body.neighborhood?.trim() || '',
       city: city.trim(),
       state: state.trim().toUpperCase(),
       zipCode: zipCode?.trim() || '',
       sellerId,
-      status: 'pendente'
+      status: finalStatus
     });
 
     res.status(201).json(property);
@@ -207,7 +214,7 @@ exports.update = async (req, res, next) => {
     }
 
     const updateData = {};
-    const allowedFields = ['title', 'description', 'type', 'price', 'bedrooms', 'bathrooms', 'area', 'street', 'number', 'complement', 'neighborhood', 'city', 'state', 'zipCode', 'featured'];
+    const allowedFields = ['title', 'description', 'type', 'price', 'bedrooms', 'bathrooms', 'area', 'street', 'number', 'complement', 'neighborhood', 'city', 'state', 'zipCode', 'featured', 'status'];
 
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
@@ -219,15 +226,13 @@ exports.update = async (req, res, next) => {
       updateData.street = req.body.address;
     }
 
-    if (req.body.state) {
+    if (req.body.state !== undefined) {
       updateData.state = req.body.state.trim().toUpperCase();
     }
 
-    if (req.user.role !== 'admin') {
-      delete updateData.status;
-    } else if (req.body.status) {
-      const allowedStatuses = ['disponivel', 'negociando', 'vendido', 'arquivado', 'pendente', 'ativo'];
+    if (req.body.status !== undefined) {
       const normalizedStatus = statusMap[req.body.status?.toString().toLowerCase()] || req.body.status.toString().toLowerCase();
+      const allowedStatuses = ['disponivel', 'negociando', 'vendido', 'arquivado', 'pendente', 'ativo'];
       if (!allowedStatuses.includes(normalizedStatus)) {
         return res.status(400).json({ message: 'Status inválido para atualização.' });
       }

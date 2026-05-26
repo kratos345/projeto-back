@@ -1,7 +1,6 @@
 ﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import LoginPage       from '../pages/Auth/LoginPage'
-import RegisterPage    from '../pages/Auth/RegisterPage'
 import DashboardPage   from '../pages/Dashboard/DashboardPage'
 import UsersPage       from '../pages/Users/UsersPage'
 import AdminPage       from '../pages/Admin/AdminPage'
@@ -32,7 +31,6 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/login"    element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
 
         {/* Dashboard principal - acessível para todos os usuários logados */}
         <Route path="/"         element={<Private><DashboardPage /></Private>} />

@@ -107,7 +107,7 @@ export default function EditUserPage() {
   if (loading) return <div className="page"><p>Carregando usuário...</p></div>
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <header className="top-bar">
         <div>
           <h2>Editar Usuário</h2>

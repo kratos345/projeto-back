@@ -1,33 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProperties } from '../../../api/properties';
 import { getAdminMetrics } from '../../../api/dashboard';
-import { getUsers } from '../../../api/users';
-import { StatCard, fmt, StatusBadge, Ic } from './DashboardHelpers';
+import { StatCard, fmt, Ic } from './DashboardHelpers';
 
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState(null);
-  const [properties, setProperties] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const loadData = async () => {
     try {
-      const [metricsRes, propsRes, usersRes] = await Promise.all([
-        getAdminMetrics(),
-        getProperties({ status: 'all' }),
-        getUsers(),
-      ]);
-
-      setMetrics(metricsRes.data);
-      setProperties(propsRes.data.slice(0, 5));
-      setUsers(usersRes.data.slice(0, 5));
+      const response = await getAdminMetrics();
+      setMetrics(response.data);
     } catch (err) {
-      setError('Erro ao carregar dados do administrador');
+      setError('Erro ao carregar dados do administrador.');
     } finally {
       setLoading(false);
     }
@@ -40,60 +31,97 @@ export default function AdminDashboard() {
     <div className="fade-up">
       <div style={{ marginBottom: 32 }}>
         <h2 className="playfair" style={{ fontSize: 24, marginBottom: 8 }}>Painel Administrativo</h2>
-        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Monitoramento de anúncios, usuários e leads.</p>
+        <p style={{ color: 'var(--muted)', fontSize: 14 }}>Tudo que um administrador precisa para gerir a plataforma.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 16, marginBottom: 28 }}>
-        <StatCard icon="building" label="Propriedades" value={metrics.properties.total || 0} delta={metrics.properties.active ? 8 : 0} />
-        <StatCard icon="users" label="Usuários" value={metrics.users.total || 0} delta={metrics.users.active ? 6 : 0} color="var(--blue)" />
-        <StatCard icon="bell" label="Leads" value={metrics.leads.total || 0} delta={0} color="var(--green)" />
-        <StatCard icon="chart" label="Anúncios ativos" value={metrics.properties.active || 0} delta={0} color="var(--amber)" />
+        <StatCard icon="building" label="Total de propriedades" value={metrics.properties.total || 0} color="var(--gold)" />
+        <StatCard icon="tag" label="Anúncios pendentes" value={metrics.properties.pending || 0} color="var(--amber)" />
+        <StatCard icon="bell" label="Leads novos" value={metrics.leads.new || 0} color="var(--green)" />
+        <StatCard icon="chart" label="Receita vendida" value={fmt(metrics.sales.totalRevenue || 0)} color="var(--blue)" />
       </div>
 
       <div style={{ display: 'grid', gap: 20, marginBottom: 32 }}>
         <section style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 600 }}>Últimos anúncios</h3>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Veja os anúncios mais recentes cadastrados.</p>
+              <h3 style={{ fontSize: 18, fontWeight: 600 }}>Ações rápidas</h3>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Acesso direto às principais áreas de gestão.</p>
             </div>
-            <button className="btn-secondary" onClick={() => navigate('/properties')}>Ver Todos</button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {properties.map((property) => (
-              <div key={property.id} style={{ display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--border)', borderRadius: 14, padding: 14 }}>
-                <img src={property.image || 'https://via.placeholder.com/80'} alt={property.title} style={{ width: 80, height: 64, borderRadius: 12, objectFit: 'cover' }} />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 600, marginBottom: 4 }}>{property.title}</p>
-                  <p style={{ color: 'var(--muted)', fontSize: 12 }}>{property.location}</p>
-                </div>
-                <StatusBadge status={property.status} />
-              </div>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+            <button className="btn-gold" style={{ width: '100%', padding: 16, textAlign: 'left' }} onClick={() => navigate('/users')}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Ic name="users" size={18} color="white" /><strong>Gerenciar usuários</strong></div>
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>Criar, editar e controlar acessos.</p>
+            </button>
+            <button className="btn-secondary" style={{ width: '100%', padding: 16, textAlign: 'left' }} onClick={() => navigate('/properties')}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Ic name="building" size={18} color="var(--blue)" /><strong>Revisar anúncios</strong></div>
+              <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--muted)' }}>Aprovar ou rejeitar imóveis pendentes.</p>
+            </button>
+            <div className="card" style={{ padding: 16, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Ic name="chart" size={18} color="var(--green)" /><strong>Visão rápida</strong></div>
+              <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--muted)' }}>Total de admins: {metrics.users.admins || 0}</p>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted)' }}>Vendedores: {metrics.users.sellers || 0}</p>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted)' }}>Compradores: {metrics.users.buyers || 0}</p>
+            </div>
           </div>
         </section>
 
         <section style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 600 }}>Usuários recentes</h3>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Últimos usuários cadastrados na plataforma.</p>
+              <h3 style={{ fontSize: 18, fontWeight: 600 }}>Resumo de performance</h3>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Principais informações para decisões administrativas.</p>
             </div>
-            <button className="btn-secondary" onClick={() => navigate('/users')}>Ver Todos</button>
           </div>
 
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 12 }}>
-            {users.map((userItem) => (
-              <li key={userItem.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 14, border: '1px solid var(--border)' }}>
-                <span style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--gold-light)', display: 'grid', placeItems: 'center' }}><Ic name="user" size={18} color="var(--gold)" /></span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontWeight: 600 }}>{userItem.name}</p>
-                  <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>{userItem.email}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
+            <div style={{ padding: 16, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)' }}>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Anúncios ativos</p>
+              <p style={{ fontSize: 24, fontWeight: 700 }}>{metrics.properties.active || 0}</p>
+            </div>
+            <div style={{ padding: 16, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)' }}>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Vendas concluídas</p>
+              <p style={{ fontSize: 24, fontWeight: 700 }}>{metrics.properties.sold || 0}</p>
+            </div>
+            <div style={{ padding: 16, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)' }}>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Leads fechados</p>
+              <p style={{ fontSize: 24, fontWeight: 700 }}>{metrics.leads.closed || 0}</p>
+            </div>
+            <div style={{ padding: 16, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)' }}>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Propriedades pendentes</p>
+              <p style={{ fontSize: 24, fontWeight: 700 }}>{metrics.properties.pending || 0}</p>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 600 }}>Top vendedores</h3>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Os maiores geradores de vendas.</p>
+            </div>
+          </div>
+
+          {metrics.sales.topSellers?.length > 0 ? (
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 12 }}>
+              {metrics.sales.topSellers.map((seller) => (
+                <li key={seller.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderRadius: 14, border: '1px solid var(--border)' }}>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 600 }}>{seller.name || seller.email}</p>
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>{seller.email}</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ margin: 0, fontWeight: 700 }}>{fmt(Number(seller.revenue) || 0)}</p>
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>{seller.soldProperties || 0} vendas</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p style={{ color: 'var(--muted)' }}>Sem dados de vendas ainda.</p>
+          )}
         </section>
       </div>
     </div>

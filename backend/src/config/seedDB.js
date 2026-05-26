@@ -10,34 +10,51 @@ const UserSetting = require('../models/UserSetting');
 
 const seedDB = async () => {
   try {
+    const adminEmail = 'leonardoferreiratomas345@gmail.com';
+    const adminName = 'Administrador';
+    const adminPassword = '321654';
+    const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
     const shouldSeedProperties = process.env.SEED_DB === 'true';
-    const userCount = await User.count();
 
-    if (userCount === 0) {
-      const passwordHash = await bcrypt.hash('123456', 10);
+    const fakeEmails = [
+      'admin@example.com',
+      'vendedor@example.com',
+      'comprador@example.com',
+      'teste_autobot@example.com',
+      'qa_test_user2@example.com',
+      'qa_seller@example.com',
+      'explorar_tester@example.com',
+      'leonardoferreiratomas234@gmail.com'
+    ];
 
-      await Promise.all([
-        User.create({
-          name: 'Admin Teste',
-          email: 'admin@example.com',
-          password: passwordHash,
-          role: 'admin'
-        }),
-        User.create({
-          name: 'Vendedor Teste',
-          email: 'vendedor@example.com',
-          password: passwordHash,
-          role: 'vendedor'
-        }),
-        User.create({
-          name: 'Comprador Teste',
-          email: 'comprador@example.com',
-          password: passwordHash,
-          role: 'user'
-        })
-      ]);
+    await User.destroy({
+      where: {
+        email: fakeEmails
+      }
+    });
 
-      console.log('✅ Usuários de teste criados com sucesso!');
+    const [adminUser, adminCreated] = await User.findOrCreate({
+      where: { email: adminEmail },
+      defaults: {
+        name: adminName,
+        password: adminPasswordHash,
+        role: 'admin',
+        status: 'ativo'
+      }
+    });
+
+    if (adminCreated) {
+      console.log('✅ Usuário ADM criado automaticamente:', adminEmail);
+    } else {
+      const updateData = {};
+      if (adminUser.role !== 'admin') updateData.role = 'admin';
+      if (adminUser.status !== 'ativo') updateData.status = 'ativo';
+      const passwordMatches = await bcrypt.compare(adminPassword, adminUser.password);
+      if (!passwordMatches) updateData.password = adminPasswordHash;
+      if (Object.keys(updateData).length > 0) {
+        await adminUser.update(updateData);
+        console.log('✅ Usuário ADM atualizado automaticamente:', adminEmail);
+      }
     }
 
     const propertyCount = await Property.count();

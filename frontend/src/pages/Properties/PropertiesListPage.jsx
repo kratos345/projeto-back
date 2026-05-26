@@ -8,6 +8,7 @@ const initialFormState = {
   title: '',
   description: '',
   type: 'Apartamento',
+  status: 'ativo',
   price: '',
   bedrooms: '',
   bathrooms: '',
@@ -83,6 +84,7 @@ export default function PropertiesListPage() {
       title: property.title || '',
       description: property.description || '',
       type: property.type || 'Apartamento',
+      status: property.status || 'ativo',
       price: property.price || '',
       bedrooms: property.bedrooms || '',
       bathrooms: property.bathrooms || '',
@@ -164,6 +166,7 @@ export default function PropertiesListPage() {
       complement: form.complement.trim(),
       city: form.city.trim(),
       state: form.state.trim().toUpperCase(),
+      status: form.status?.toString().trim().toLowerCase(),
       zipCode: form.zipCode.trim()
     };
 
@@ -229,6 +232,7 @@ export default function PropertiesListPage() {
       alert('✅ Imóvel salvo com sucesso!');
     } catch (err) {
       setFormError('❌ Não foi possível salvar o imóvel. Verifique os dados e tente novamente.');
+    } finally {
       setSaving(false);
     }
   };
@@ -314,6 +318,25 @@ export default function PropertiesListPage() {
                       <option value="Cobertura">Cobertura</option>
                       <option value="Comercial">Comercial</option>
                       <option value="Galpão">Galpão</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Status do Anúncio *</label>
+                    <select
+                      name="status"
+                      value={form.status}
+                      onChange={handleChange}
+                      className="inp"
+                      required
+                      disabled={saving}
+                    >
+                      <option value="ativo">Ativo</option>
+                      <option value="pendente">Pendente</option>
+                      <option value="disponivel">Disponível</option>
+                      <option value="negociando">Negociando</option>
+                      <option value="vendido">Vendido</option>
+                      <option value="arquivado">Arquivado</option>
                     </select>
                   </div>
 
