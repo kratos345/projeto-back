@@ -59,7 +59,7 @@ const getErrorMessage = (err, fallback) => err?.response?.data?.message || err?.
 const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
   <div className="sidebar" style={{ width: 230, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
     <div style={{ marginBottom: 32 }}>
-      <span className="playfair gold-text" style={{ fontSize: 20, fontWeight: 700 }}>PrimeVenda</span>
+      <span className="playfair gold-text" style={{ fontSize: 20, fontWeight: 700 }}>Prime Venda</span>
       <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(201,168,76,.06)', border: '1px solid rgba(201,168,76,.12)', borderRadius: 12, padding: '10px 12px' }}>
         {user?.profileImage ? (
           <img src={user.profileImage} alt="Avatar" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} />

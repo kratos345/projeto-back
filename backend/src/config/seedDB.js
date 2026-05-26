@@ -10,9 +10,9 @@ const UserSetting = require('../models/UserSetting');
 
 const seedDB = async () => {
   try {
-    const adminEmail = 'leonardoferreiratomas345@gmail.com';
-    const adminName = 'Administrador';
-    const adminPassword = '321654';
+    const adminEmail = process.env.ADMIN_EMAIL || 'leonardoferreiratomas234@gmail.com';
+    const adminName = process.env.ADMIN_NAME || 'Administrador';
+    const adminPassword = process.env.ADMIN_PASSWORD || '321654';
     const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
     const shouldSeedProperties = process.env.SEED_DB === 'true';
 

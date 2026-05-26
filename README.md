@@ -1,268 +1,162 @@
-# 🚀 Guia de Setup - Projeto Beck
+Prime Venda
+===========
 
-## 📋 Pré-requisitos
+Prime Venda é uma plataforma de vendas de imóveis com backend em Node.js + Express + SQLite e frontend em React + Vite.
 
-- Node.js v16+
+Sumário
+-------
+- [Visão geral](#visão-geral)
+- [Requisitos](#requisitos)
+- [Instalação](#instalação)
+- [Execução](#execução)
+- [Admin padrão](#admin-padrão)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Banco de dados](#banco-de-dados)
+- [Observações](#observações)
+
+Visão geral
+-----------
+Este repositório contém duas partes principais:
+
+- `backend/`: API e lógica do servidor.
+- `frontend/`: interface do usuário em React.
+
+Requisitos
+----------
+- Node.js 18+ instalado
 - npm
-- Visual Studio Code (opcional)
 
-> ✅ O projeto agora usa SQLite local e não depende de XAMPP ou MySQL externo.
+Instalação
+----------
 
----
+### 1) Backend
 
-## 📂 Estrutura do Projeto
-
-```
-meu-projeto/
-├── backend/           # API Express + Sequelize
-│   ├── src/
-│   │   ├── config/    # Configurações (banco, inicialização)
-│   │   ├── controllers/
-│   │   ├── middlewares/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── utils/
-│   │   └── server.js  # Entry point
-│   ├── database.sqlite   # SQLite local gerado automaticamente
-│   └── package.json
-│
-└── frontend/          # React + Vite
-    ├── src/
-    │   ├── api/       # Chamadas HTTP
-    │   ├── contexts/  # Context API
-    │   ├── pages/
-    │   ├── components/
-    │   ├── hooks/
-    │   ├── styles/
-    │   └── main.jsx
-    └── package.json
-```
-
----
-
-## ⚙️ Passo 1: Banco de Dados SQLite Local
-
-O backend usa SQLite local e cria automaticamente o arquivo `backend/database.sqlite` na primeira execução.
-
-### O que você precisa fazer
-
-- Não é necessário instalar ou configurar MySQL/XAMPP.
-- O arquivo de banco de dados é gerado automaticamente pelo backend.
-
-### Se quiser limpar o banco e começar do zero
-
-- Apague o arquivo `backend/database.sqlite`
-- Reinicie o backend com `npm run dev`
-
----
-
-## 🔐 Usuários Padrão de Teste
-
-| Email | Senha | Papel |
-|-------|-------|-------|
-| admin@example.com | 123456 | admin |
-| vendedor@example.com | 123456 | vendedor |
-| usuario@example.com | 123456 | user |
-
----
-
-## 📝 Passo 2: Configurar Backend
-
-### 2.1 Criar arquivo `.env`
+Abra um terminal na pasta `backend` e instale as dependências:
 
 ```bash
 cd backend
-cp .env.example .env
+npm install
 ```
 
-### 2.2 Editar `.env` para rodar com SQLite local
+Crie o arquivo `.env` a partir de `.env.example` ou use estes valores mínimos:
 
-```bash
-# Database
-DB_STORAGE=./database.sqlite
-
-# JWT
-JWT_SECRET=sua_chave_secreta_super_segura_123
-JWT_EXPIRES=7d
-
-# Server
+```env
 PORT=3001
-NODE_ENV=development
+DB_STORAGE=./database.sqlite
+JWT_SECRET=insira_um_valor_forte_aqui
+JWT_EXPIRES=7d
 CLIENT_URL=http://localhost:5173
+ADMIN_EMAIL=leonardoferreiratomas234@gmail.com
+ADMIN_PASSWORD=321654
+ADMIN_NAME=Administrador
 ```
 
-### 2.3 Instalar dependências
+### 2) Frontend
 
-```bash
-npm install
-```
-
----
-
-## 🎨 Passo 3: Configurar Frontend
-
-### 3.1 Instalar dependências
+Abra outro terminal na pasta `frontend` e instale as dependências:
 
 ```bash
 cd frontend
 npm install
 ```
 
----
+Execução
+--------
 
-## ▶️ Passo 4: Executar Aplicação
-
-Abra **2 terminais** diferentes:
-
-### Terminal 1 - Backend (API)
+Inicie o backend:
 
 ```bash
 cd backend
 npm run dev
 ```
 
-**Saída esperada:**
-```
-✅ Banco de dados sincronizado com sucesso!
-✅ Servidor rodando na porta 3001
-📝 Acesse: http://localhost:3001/api/
-```
-
-### Terminal 2 - Frontend (React)
+Inicie o frontend:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-**Saída esperada:**
-```
-VITE v5.0.0  ready in XXX ms
+Depois disso, abra o navegador em `http://localhost:5173`.
 
-➜  Local:   http://localhost:5173/
-```
+O frontend está configurado para enviar chamadas de API para o backend via proxy `/api` para `http://localhost:3001`.
 
----
+Admin padrão
+------------
 
-## 🌐 Acessar Aplicação
+O backend cria um usuário administrador automaticamente na primeira execução, usando as credenciais abaixo:
 
-Abra seu navegador e acesse:
+- Email: `leonardoferreiratomas234@gmail.com`
+- Senha: `321654`
 
-```
-http://localhost:5173
-```
+A senha é armazenada com hash usando `bcrypt` em `backend/src/config/seedDB.js`.
 
----
+Estrutura do projeto
+--------------------
 
-## 📡 Testar Endpoints da API
+Raiz do repositório:
 
-### 1️⃣ Fazer Login
+- `backend/`
+  - `src/`
+    - `app.js` — configuração do Express
+    - `server.js` — inicializa o servidor e chama `initDB`
+    - `config/`
+      - `database.js` — configuração do Sequelize e SQLite
+      - `initDB.js` — associações e inicialização do DB
+      - `seedDB.js` — cria o admin padrão e dados iniciais
+    - `controllers/` — lógica de rotas
+    - `models/` — modelos Sequelize (`User`, `Property`, etc.)
+    - `routes/` — rotas da API
+    - `middlewares/` — autenticação, validação e tratamento de erros
+  - `database.sqlite` — arquivo de banco de dados SQLite
+
+- `frontend/`
+  - `src/`
+    - `main.jsx` — boot do React
+    - `api/` — chamadas ao backend via Axios
+    - `pages/` — telas do app (Auth, Dashboard, Properties, etc.)
+    - `components/` — componentes compartilhados
+    - `styles/` — estilos do app
+  - `index.html`
+
+Banco de dados
+--------------
+
+- O banco de dados é armazenado em `backend/database.sqlite`.
+- Não apague esse arquivo se quiser preservar dados e usuários.
+- O backend executa `sequelize.sync({ alter: true })` no startup.
+- Se ocorrer erro de sincronização, há um fallback para `sync({ force: true })`, que recria o banco.
+
+Observações
+-----------
+
+- Defina `JWT_SECRET` para um valor forte em produção.
+- Não comite `.env` com dados reais.
+- Mantenha `package-lock.json` para consistência das dependências.
+- Para backup, copie o arquivo `backend/database.sqlite`.
+
+Comandos rápidos
+---------------
+
+Backend:
 
 ```bash
-curl -X POST http://localhost:3001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"123456"}'
+cd backend
+npm install
+npm run dev
 ```
 
-### 2️⃣ Ver Saúde da API
+Frontend:
 
 ```bash
-curl http://localhost:3001/api/health
+cd frontend
+npm install
+npm run dev
 ```
 
----
+Pronto
+-----
 
-## ✨ Melhorias Implementadas
+Este `README.md` é a referência principal do projeto. Se quiser, posso também gerar o arquivo `backend/.env` com o admin padrão e os valores necessários para iniciar o projeto imediatamente.
 
-### Backend ✅
-- ✅ Sincronização automática de banco de dados
-- ✅ Validação de entrada (express-validator)
-- ✅ Tratamento de erros centralizado
-- ✅ Middleware de autenticação JWT
-- ✅ Suporte a CORS
-- ✅ Logging com Morgan
-
-### Frontend ✅
-- ✅ CSS moderna e responsiva
-- ✅ Componentes React funcionais
-- ✅ Context API para autenticação
-- ✅ React Router v6
-- ✅ Axios com interceptadores
-- ✅ Vite para build rápido
-
----
-
-## 🐛 Troubleshooting
-
-### Erro: "ER_ACCESS_DENIED_FOR_USER"
-- Verifique usuário e senha no `.env`
-- Este erro não deve ocorrer em SQLite local, mas confira se não há configuração remanescente de MySQL
-
-### Erro: "ECONNREFUSED"
-- Backend não está rodando
-- Verifique se está na porta 3001
-
-### Erro: "Module not found"
-- Execute `npm install` no diretório correto
-
-### Banco não sincroniza
-- Verifique se o MySQL está acessível
-- Confira as credenciais do `.env`
-
----
-
-## 📚 Scripts Disponíveis
-
-### Backend
-```bash
-npm run dev     # Inicia com nodemon (desenvolvimento)
-npm start       # Inicia modo produção
-```
-
-### Frontend
-```bash
-npm run dev     # Inicia dev server
-npm run build   # Cria bundle de produção
-npm run preview # Visualiza build
-```
-
----
-
-## 🎯 Fluxo da Aplicação
-
-```
-1. Usuário acessa http://localhost:5173
-2. Sistema verifica autenticação (localStorage)
-3. Se não autenticado → Redireciona para /login
-4. Após login bem-sucedido:
-   - Token salvo em localStorage
-   - Usuário salvo em Context API
-   - Redirecionado para dashboard
-5. Dashboard mostra dados do usuário
-6. Botão "Ver usuarios" acessa a lista completa
-```
-
----
-
-## 🔒 Segurança
-
-- ✅ Senhas hash com bcryptjs
-- ✅ JWT para autenticação
-- ✅ CORS configurado
-- ✅ Variáveis sensíveis em `.env`
-- ✅ Validação de entrada
-
----
-
-## 📞 Suporte
-
-Se encontrar problemas:
-
-1. Verifique os logs no terminal
-2. Confirme que o backend está rodando
-3. Valide as variáveis no `.env`
-4. Limpe cache (Ctrl+Shift+Del no navegador)
-
----
-
-**Boa sorte! 🚀**
+Diga qual opção prefere e eu aplico.

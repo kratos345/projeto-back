@@ -61,24 +61,24 @@ export default function LoginPage() {
           <div className="hero-bg" />
           <div className="hero-content">
             <div>
-              <span className="playfair gold-text" style={{ fontSize: 26, fontWeight: 700 }}>PrimeVenda</span>
-              <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 14 }}>Plataforma premium de vendas</p>
+              <span className="playfair gold-text" style={{ fontSize: 26, fontWeight: 700 }}>Prime Venda</span>
+              <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 14 }}>Plataforma premium de vendas de imóveis</p>
             </div>
             <div>
               <h1 className="playfair" style={{ fontSize: 38, fontWeight: 700, lineHeight: 1.2, marginBottom: 20 }}>
-                Imóveis & Veículos<br />
-                <span className="gold-text">de alto padrão</span>
+                Venda ou compre<br />
+                <span className="gold-text">imóveis de alto padrão</span>
               </h1>
-              <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.7 }}>Conectando compradores e vendedores nos melhores negócios do mercado.</p>
+              <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.7 }}>Conectando compradores e vendedores no mercado imobiliário.</p>
             </div>
           </div>
         </div>
         <div className="auth-right">
           <form className="auth-form fade-up" onSubmit={handleLogin}>
             <div style={{ marginBottom: 36, textAlign: "center" }}>
-              <span className="playfair gold-text" style={{ fontSize: 28, fontWeight: 700 }}>PrimeVenda</span>
+              <span className="playfair gold-text" style={{ fontSize: 28, fontWeight: 700 }}>Prime Venda</span>
               <h2 style={{ fontSize: 22, fontWeight: 600, marginTop: 20, marginBottom: 6 }}>Bem-vindo de volta</h2>
-              <p style={{ color: "var(--muted)", fontSize: 14 }}>Acesse sua conta para continuar</p>
+              <p style={{ color: "var(--muted)", fontSize: 14 }}>Acesse sua conta para continuar no portal de imóveis.</p>
             </div>
             {error && (
               <div style={{ marginBottom: 20, padding: 14, borderRadius: 12, background: "rgba(224,85,85,.12)", color: "var(--red)", border: "1px solid rgba(224,85,85,.3)" }}>

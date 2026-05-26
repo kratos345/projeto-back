@@ -92,10 +92,10 @@ export default function PrimeVendaTheme() {
       .auth-layout .auth-left .hero-bg {
         position: absolute;
         inset: 0;
-        background-image: url(https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=60);
+        background-image: url(https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=60);
         background-size: cover;
         background-position: center;
-        opacity: .15;
+        opacity: .18;
       }
       .auth-layout .auth-left .hero-content {
         position: relative;
