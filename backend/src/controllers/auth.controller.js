@@ -113,15 +113,17 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      console.log('⚠️ Usuário não encontrado:', email);
-      return res.status(404).json({ message: "Usuário não encontrado. Faça o cadastro primeiro." });
+      console.log('⚠️ Tentativa de login com email não registrado:', email);
+      // Retornar mensagem genérica para evitar user enumeration
+      return res.status(401).json({ message: "Email ou senha incorretos. Verifique seus dados ou faça o cadastro." });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
       console.log('⚠️ Senha incorreta para:', email);
-      return res.status(401).json({ message: "Senha incorreta" });
+      // Retornar mensagem genérica para evitar user enumeration
+      return res.status(401).json({ message: "Email ou senha incorretos. Verifique seus dados ou faça o cadastro." });
     }
 
     if (user.status === 'bloqueado') {

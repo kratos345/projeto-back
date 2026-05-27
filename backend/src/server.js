@@ -1,36 +1,22 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const routes = require('./routes');
-const { errorHandler } = require('./middlewares/errorHandler');
 const initDB = require('./config/initDB');
-
-const app = express();
-
-app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
-app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
-
-app.use('/api', routes);
-app.get('/health', (req, res) => res.json({ status: 'OK' }));
-
-app.use(errorHandler);
+const app = require('./app');
 
 // Inicializar banco de dados e iniciar servidor
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 
 (async () => {
   try {
     // Sincroniza o banco de dados
     await initDB();
     
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, HOST, () => {
+      const accessUrl = HOST === '0.0.0.0' ? 'localhost' : HOST;
       console.log(`✅ Servidor rodando na porta ${PORT}`);
-      console.log(`📝 Acesse: http://localhost:${PORT}/api/`);
+      console.log(`📝 Acesse localmente: http://${accessUrl}:${PORT}/api/`);
+      console.log(`🌐 Para outra máquina na rede, use o IP da máquina: http://[SEU_IP]:${PORT}/api/`);
     });
 
     server.on('error', (error) => {

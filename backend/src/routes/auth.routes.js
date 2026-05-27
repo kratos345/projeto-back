@@ -7,7 +7,7 @@ const { validateRegister, validateLogin } = require('../middlewares/validators')
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { roleMiddleware } = require('../middlewares/roleMiddleware');
 
-router.post('/register', authMiddleware, roleMiddleware('admin'), validateRegister, authController.register);
+router.post('/register', validateRegister, authController.register);
 router.post('/login', validateLogin, authController.login);
 router.post('/request-account', requestController.create);
 

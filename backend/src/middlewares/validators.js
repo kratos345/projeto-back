@@ -1,11 +1,56 @@
 ﻿const { body, validationResult } = require('express-validator');
 
+// Validar CPF
+function isValidCPF(cpf) {
+  cpf = cpf.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i);
+  const digit1 = 11 - (sum % 11);
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf[i]) * (11 - i);
+  const digit2 = 11 - (sum % 11);
+  return parseInt(cpf[9]) === (digit1 > 9 ? 0 : digit1) && parseInt(cpf[10]) === (digit2 > 9 ? 0 : digit2);
+}
+
+// Validar CNPJ
+function isValidCNPJ(cnpj) {
+  cnpj = cnpj.replace(/\D/g, '');
+  if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
+  let sum = 0;
+  const multipliers = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  for (let i = 0; i < 12; i++) sum += parseInt(cnpj[i]) * multipliers[i];
+  const digit1 = 11 - (sum % 11);
+  sum = 0;
+  const multipliers2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  for (let i = 0; i < 13; i++) sum += parseInt(cnpj[i]) * multipliers2[i];
+  const digit2 = 11 - (sum % 11);
+  return parseInt(cnpj[12]) === (digit1 > 9 ? 0 : digit1) && parseInt(cnpj[13]) === (digit2 > 9 ? 0 : digit2);
+}
+
 exports.validateRegister = [
   body('name').trim().notEmpty().withMessage('Nome é obrigatório.'),
   body('email').isEmail().withMessage('E-mail inválido.').normalizeEmail(),
-  body('password').isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres.'),
-  body('confirmPassword').optional().custom((value, { req }) => value === req.body.password).withMessage('As senhas não coincidem.'),
-  body('cpfCnpj').optional({ nullable: true, checkFalsy: true }).trim().isLength({ min: 11 }).withMessage('CPF/CNPJ inválido.'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Senha deve ter pelo menos 8 caracteres.')
+    .matches(/[A-Z]/)
+    .withMessage('Senha deve conter pelo menos uma letra maiúscula.')
+    .matches(/[a-z]/)
+    .withMessage('Senha deve conter pelo menos uma letra minúscula.')
+    .matches(/[0-9]/)
+    .withMessage('Senha deve conter pelo menos um número.')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('Senha deve conter pelo menos um caractere especial.'),
+  body('confirmPassword').custom((value, { req }) => value === req.body.password).withMessage('As senhas não coincidem.'),
+  body('cpfCnpj')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .custom(value => {
+      if (!value) return true;
+      if (isValidCPF(value) || isValidCNPJ(value)) return true;
+      throw new Error('CPF ou CNPJ inválido.');
+    }),
   body('role').optional().isIn(['user', 'usuario', 'vendedor', 'admin', 'adm']).withMessage('Role inválido.'),
 ];
 
