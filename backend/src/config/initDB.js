@@ -9,6 +9,7 @@ const Notification = require('../models/Notification');
 const AdminAudit = require('../models/AdminAudit');
 const SellerProfile = require('../models/SellerProfile');
 const UserSetting = require('../models/UserSetting');
+const RequestAccount = require('../models/RequestAccount');
 const seedDB = require('./seedDB');
 
 // Define Associations

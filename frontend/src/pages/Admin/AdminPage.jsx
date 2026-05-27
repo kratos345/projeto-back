@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllProperties, approveProperty, rejectProperty } from '../../api/properties';
 import '../../styles/admin.css';
+import { getRequests } from '../../api/requests';
 
 export default function AdminPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [reqLoading, setReqLoading] = useState(false);
   const [filter, setFilter] = useState('todos');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadProperties();
+    loadRequests();
   }, []);
 
   const loadProperties = async () => {
@@ -22,6 +26,18 @@ export default function AdminPage() {
       setError('Erro ao carregar propriedades');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRequests = async () => {
+    setReqLoading(true);
+    try {
+      const res = await getRequests();
+      setRequests(res.data || []);
+    } catch (err) {
+      // falha silenciosa: não bloquear admin
+    } finally {
+      setReqLoading(false);
     }
   };
 
@@ -95,9 +111,49 @@ export default function AdminPage() {
         >
           👥 Gerenciar Usuários
         </button>
+        <button
+          type="button"
+          style={{
+            marginLeft: 8,
+            background: 'white',
+            color: '#b7791f',
+            border: '1px solid rgba(183,121,31,.15)',
+            padding: '0.75rem 1rem',
+            borderRadius: 6,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
+          }}
+          onClick={() => navigate('/admin/requests')}
+        >
+          📨 Solicitações
+          {requests && requests.filter(r => r.status === 'pending').length > 0 && (
+            <span style={{ background: '#b45309', color: 'white', borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>{requests.filter(r => r.status === 'pending').length}</span>
+          )}
+        </button>
       </header>
 
       <main className="admin-content">
+        {/* Resumo de solicitações de conta */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'stretch' }}>
+          <div style={{ flex: '0 0 320px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
+            <h3 style={{ margin: 0, fontSize: 16 }}>📨 Solicitações de conta</h3>
+            <p style={{ margin: '6px 0 12px', color: '#6b7280' }}>{reqLoading ? 'Carregando...' : `${requests.length} total`}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 140, overflow: 'auto' }}>
+              {requests.slice(0,5).map(r => (
+                <div key={r.id} style={{ padding: 8, borderRadius: 8, background: 'transparent', border: '1px solid rgba(0,0,0,.04)' }}>
+                  <div style={{ fontWeight: 600 }}>{r.name}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>{r.cpfCnpj}</div>
+                </div>
+              ))}
+              {requests.length === 0 && !reqLoading && <div style={{ color: '#6b7280' }}>Nenhuma solicitação recente</div>}
+            </div>
+            <div style={{ marginTop: 12, textAlign: 'right' }}>
+              <button onClick={() => navigate('/admin/requests')} style={{ background: 'transparent', border: 0, color: 'var(--gold)', cursor: 'pointer' }}>Ver todas →</button>
+            </div>
+          </div>
+        </div>
         {/* Filtros */}
         <div className="admin-filters">
           <div className="filter-group">

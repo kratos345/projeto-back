@@ -6,6 +6,7 @@ const leadRoutes = require('./lead.routes');
 const favoriteRoutes = require('./favorite.routes');
 const visitRoutes = require('./visit.routes');
 const dashboardRoutes = require('./dashboard.routes');
+const adminRoutes = require('./admin.routes');
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/leads', leadRoutes);
 router.use('/favorites', favoriteRoutes);
 router.use('/visits', visitRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;

@@ -3,6 +3,7 @@ import { loginRequest } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import PrimeVendaTheme from "../../components/PrimeVendaTheme";
+import RequestAccountForm from "./RequestAccountForm";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const { signin } = useAuth();
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -127,8 +129,9 @@ export default function LoginPage() {
               {loading ? '⏳ Entrando...' : loginSuccess ? 'Aguarde...' : 'Entrar'}
             </button>
             <p style={{ textAlign: "center", marginTop: 20, fontSize: 14, color: "var(--muted)" }}>
-              Novo usuário somente pode ser criado por um administrador no painel.
+              Novo usuário somente pode ser criado por um administrador no painel. <span style={{ color: 'var(--gold)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowRequestForm(true)}>Solicitar conta</span>
             </p>
+            {showRequestForm && <RequestAccountForm onClose={() => setShowRequestForm(false)} />}
           </form>
         </div>
       </div>

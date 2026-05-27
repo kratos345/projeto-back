@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAdminMetrics } from '../../../api/dashboard';
+import { getRequests } from '../../../api/requests';
 import { StatCard, fmt, Ic } from './DashboardHelpers';
 
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [reqLoading, setReqLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,6 +20,16 @@ export default function AdminDashboard() {
     try {
       const response = await getAdminMetrics();
       setMetrics(response.data);
+      // carregar solicitações recentes
+      setReqLoading(true);
+      try {
+        const r = await getRequests();
+        setRequests(r.data || []);
+      } catch (e) {
+        // ignore
+      } finally {
+        setReqLoading(false);
+      }
     } catch (err) {
       setError('Erro ao carregar dados do administrador.');
     } finally {
@@ -32,6 +45,27 @@ export default function AdminDashboard() {
       <div style={{ marginBottom: 32 }}>
         <h2 className="playfair" style={{ fontSize: 24, marginBottom: 8 }}>Painel Administrativo</h2>
         <p style={{ color: 'var(--muted)', fontSize: 14 }}>Tudo que um administrador precisa para gerir a plataforma.</p>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
+          <div style={{ flex: '0 0 320px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 14 }}>
+            <h4 style={{ margin: 0, fontSize: 15 }}>📨 Solicitações de conta</h4>
+            <p style={{ margin: '6px 0 12px', color: 'var(--muted)' }}>{reqLoading ? 'Carregando...' : `${requests.length} total`}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 110, overflow: 'auto' }}>
+              {requests.slice(0,5).map(r => (
+                <div key={r.id} style={{ padding: 8, borderRadius: 8, border: '1px solid rgba(0,0,0,.04)' }}>
+                  <div style={{ fontWeight: 600 }}>{r.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)' }}>{r.cpfCnpj}</div>
+                </div>
+              ))}
+              {requests.length === 0 && !reqLoading && <div style={{ color: 'var(--muted)' }}>Nenhuma solicitação recente</div>}
+            </div>
+            <div style={{ marginTop: 10, textAlign: 'right' }}>
+              <button onClick={() => navigate('/admin/requests')} style={{ background: 'transparent', border: 0, color: 'var(--gold)', cursor: 'pointer' }}>Ver todas →</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 16, marginBottom: 28 }}>
@@ -50,7 +84,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12 }}>
             <button className="btn-gold" style={{ width: '100%', padding: 16, textAlign: 'left' }} onClick={() => navigate('/users')}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Ic name="users" size={18} color="white" /><strong>Gerenciar usuários</strong></div>
               <p style={{ margin: '8px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>Criar, editar e controlar acessos.</p>
@@ -64,6 +98,26 @@ export default function AdminDashboard() {
               <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--muted)' }}>Total de admins: {metrics.users.admins || 0}</p>
               <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted)' }}>Vendedores: {metrics.users.sellers || 0}</p>
               <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted)' }}>Compradores: {metrics.users.buyers || 0}</p>
+            </div>
+
+            <div className="card" style={{ padding: 16, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--card)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Ic name="bell" size={18} color="var(--amber)" /><strong>Solicitações</strong></div>
+              <p style={{ margin: '10px 0 8px', fontSize: 13, color: 'var(--muted)' }}>{reqLoading ? 'Carregando...' : `${requests.length} solicitações`}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 90, overflow: 'auto' }}>
+                {requests.slice(0,3).map(r => (
+                  <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{r.name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)' }}>{r.cpfCnpj}</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                  </div>
+                ))}
+                {requests.length === 0 && !reqLoading && <div style={{ color: 'var(--muted)' }}>Nenhuma solicitação</div>}
+              </div>
+              <div style={{ marginTop: 10, textAlign: 'right' }}>
+                <button onClick={() => navigate('/admin/requests')} className="btn-secondary" style={{ padding: '6px 10px' }}>Ver todas</button>
+              </div>
             </div>
           </div>
         </section>

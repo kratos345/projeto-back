@@ -13,3 +13,9 @@ export const registerRequest = async (data) => {
   const response = await client.post("/auth/register", data);
   return response.data;
 };
+
+export const requestAccount = async (data) => {
+  const response = await client.post('/auth/request-account', data);
+  return response.data;
+};
+
