@@ -26,7 +26,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('todos')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [message, setMessage] = useState('')
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user', cpfCnpj: '' })
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'user', cpfCnpj: '' })
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState('')
   const [createSuccess, setCreateSuccess] = useState('')
@@ -124,8 +124,28 @@ export default function UsersPage() {
       return
     }
 
-    if (newUser.password.length < 6) {
-      setCreateError('❌ A senha deve ter no mínimo 6 caracteres.')
+    // Validar requisitos da senha
+    const passwordErrors = []
+    if (newUser.password.length < 8) passwordErrors.push('mínimo 8 caracteres')
+    if (!/[A-Z]/.test(newUser.password)) passwordErrors.push('letra maiúscula')
+    if (!/[a-z]/.test(newUser.password)) passwordErrors.push('letra minúscula')
+    if (!/[0-9]/.test(newUser.password)) passwordErrors.push('número')
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newUser.password)) passwordErrors.push('caractere especial')
+
+    if (passwordErrors.length > 0) {
+      setCreateError(`❌ A senha deve conter: ${passwordErrors.join(', ')}.`)
+      setTimeout(() => setCreateError(''), 4000)
+      return
+    }
+
+    if (!newUser.confirmPassword) {
+      setCreateError('❌ Confirmação de senha é obrigatória.')
+      setTimeout(() => setCreateError(''), 4000)
+      return
+    }
+
+    if (newUser.password !== newUser.confirmPassword) {
+      setCreateError('❌ As senhas não coincidem.')
       setTimeout(() => setCreateError(''), 4000)
       return
     }
@@ -150,7 +170,7 @@ export default function UsersPage() {
     try {
       const data = await registerRequest(newUser)
       setCreateSuccess('✅ Usuário criado com sucesso!')
-      setNewUser({ name: '', email: '', password: '', role: 'user', cpfCnpj: '' })
+      setNewUser({ name: '', email: '', password: '', confirmPassword: '', role: 'user', cpfCnpj: '' })
       
       // Limpar mensagem de sucesso após 3 segundos
       setTimeout(() => setCreateSuccess(''), 3000)
@@ -237,7 +257,7 @@ export default function UsersPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#374151' }}>Senha (mín. 6 caracteres) *</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#374151' }}>Senha (8+ caracteres, maiúscula, número, especial) *</label>
               <input
                 name="password"
                 value={newUser.password}
@@ -249,6 +269,22 @@ export default function UsersPage() {
                 required
               />
             </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#374151' }}>Confirmar Senha *</label>
+              <input
+                name="confirmPassword"
+                value={newUser.confirmPassword}
+                onChange={handleNewChange}
+                placeholder="••••••••"
+                type="password"
+                className="inp"
+                disabled={createLoading}
+                required
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#374151' }}>Tipo de conta *</label>
               <select
@@ -264,9 +300,6 @@ export default function UsersPage() {
                 <option value="admin">🔐 Administrador</option>
               </select>
             </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'flex-end' }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#374151' }}>CPF/CNPJ (opcional)</label>
               <input
@@ -278,6 +311,9 @@ export default function UsersPage() {
                 disabled={createLoading}
               />
             </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
             <button
               type="submit"
               className="btn-primary"

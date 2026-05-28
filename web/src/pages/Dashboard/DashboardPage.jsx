@@ -13,6 +13,7 @@ import VendedorDashboard from './components/VendedorDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import UsersPage from '../Users/UsersPage';
 import { Ic, fmt, formatDate, StatusBadge, ListingModal, ListingCard, StatCard } from './components/DashboardHelpers';
+import logo from '../../assets/logo.png';
 
 // Observação: anteriormente usamos mocks para a aba Explorar.
 // Agora a aba Explorar deve carregar apenas anúncios reais criados no backend.
@@ -119,11 +120,7 @@ const Header = ({ title, role }) => (
   <div className="top-bar">
     <h1 className="playfair" style={{ fontSize: 20, fontWeight: 600 }}>{title}</h1>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <div style={{ position: 'relative', cursor: 'pointer' }}>
-        <Ic name="bell" size={20} color="var(--muted)" />
-        <div style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-      </div>
-      <div style={{ background: 'linear-gradient(135deg,var(--gold),var(--amber))', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{ROLE_ICON[role]}</div>
+        <img src={logo} alt="Logo" style={{ height: 40, maxWidth: 200, objectFit: 'contain' }} />
     </div>
   </div>
 );
