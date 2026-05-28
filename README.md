@@ -18,8 +18,8 @@ Visão geral
 -----------
 Este repositório contém duas partes principais:
 
-- `backend/`: API e lógica do servidor.
-- `frontend/`: interface do usuário em React.
+- `api/`: API e lógica do servidor (Node.js + Express + SQLite)
+- `web/`: interface do usuário em React + Vite
 
 Requisitos
 ----------
@@ -29,16 +29,20 @@ Requisitos
 Instalação
 ----------
 
-### 1) Backend
-
-Abra um terminal na pasta `backend` e instale as dependências:
+Na **raiz do projeto**, execute uma única vez:
 
 ```bash
-cd backend
-npm install
+npm run install:all
 ```
 
-Crie o arquivo `.env` a partir de `.env.example` ou use estes valores mínimos:
+Isso instalará as dependências de:
+- Raiz do projeto
+- API (`api/`)
+- Web (`web/`)
+
+### Configuração do .env
+
+Crie o arquivo `.env` na pasta `api/` a partir de `.env.example` ou use estes valores mínimos:
 
 ```env
 PORT=3001
@@ -51,33 +55,37 @@ ADMIN_PASSWORD=321654
 ADMIN_NAME=Administrador
 ```
 
-### 2) Frontend
-
-Abra outro terminal na pasta `frontend` e instale as dependências:
-
-```bash
-cd frontend
-npm install
-```
-
 Execução
 --------
 
-Inicie o backend:
+### ⚡ Forma Recomendada (Uma Janela)
+
+Na **raiz do projeto**, execute:
 
 ```bash
-cd backend
 npm run dev
 ```
 
-Inicie o frontend:
+Isso inicia **simultaneamente**:
+- ✅ **API** na porta `3001` (backend)
+- ✅ **Web** na porta `5173` (frontend)
+
+Depois abra o navegador em: **http://localhost:5173**
+
+### 🖱️ Forma Alternativa (Com Clique)
+
+Execute o arquivo `INICIAR.bat` (Windows):
 
 ```bash
-cd frontend
-npm run dev
+.\INICIAR.bat
 ```
 
-Depois disso, abra o navegador em `http://localhost:5173`.
+### 🌐 Acessar
+
+Após iniciar, abra no seu navegador:
+
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:3001/api/
 
 O frontend está configurado para enviar chamadas de API para o backend via proxy `/api` para `http://localhost:3001`.
 
@@ -89,40 +97,50 @@ O backend cria um usuário administrador automaticamente na primeira execução,
 - Email: `leonardoferreiratomas234@gmail.com`
 - Senha: `321654`
 
-A senha é armazenada com hash usando `bcrypt` em `backend/src/config/seedDB.js`.
+A senha é armazenada com hash usando `bcrypt` em `api/src/config/seedDB.js`.
 
 Estrutura do projeto
 --------------------
 
 Raiz do repositório:
 
-- `backend/`
-  - `src/`
-    - `app.js` — configuração do Express
-    - `server.js` — inicializa o servidor e chama `initDB`
-    - `config/`
-      - `database.js` — configuração do Sequelize e SQLite
-      - `initDB.js` — associações e inicialização do DB
-      - `seedDB.js` — cria o admin padrão e dados iniciais
-    - `controllers/` — lógica de rotas
-    - `models/` — modelos Sequelize (`User`, `Property`, etc.)
-    - `routes/` — rotas da API
-    - `middlewares/` — autenticação, validação e tratamento de erros
-  - `database.sqlite` — arquivo de banco de dados SQLite
-
-- `frontend/`
-  - `src/`
-    - `main.jsx` — boot do React
-    - `api/` — chamadas ao backend via Axios
-    - `pages/` — telas do app (Auth, Dashboard, Properties, etc.)
-    - `components/` — componentes compartilhados
-    - `styles/` — estilos do app
-  - `index.html`
+```
+meu-projeto/
+├── api/                      ← Backend (Node.js + Express + SQLite)
+│   ├── src/
+│   │   ├── app.js            — configuração do Express
+│   │   ├── server.js         — inicializa o servidor e chama `initDB`
+│   │   ├── config/
+│   │   │   ├── database.js   — configuração do Sequelize e SQLite
+│   │   │   ├── initDB.js     — associações e inicialização do DB
+│   │   │   └── seedDB.js     — cria o admin padrão e dados iniciais
+│   │   ├── controllers/      — lógica de rotas
+│   │   ├── models/           — modelos Sequelize (User, Property, etc.)
+│   │   ├── routes/           — rotas da API
+│   │   └── middlewares/      — autenticação, validação e tratamento de erros
+│   └── database.sqlite       — arquivo de banco de dados SQLite
+│
+├── web/                      ← Frontend (React + Vite)
+│   ├── src/
+│   │   ├── main.jsx          — boot do React
+│   │   ├── api/              — chamadas ao backend via Axios
+│   │   ├── pages/            — telas do app (Auth, Dashboard, Properties, etc.)
+│   │   ├── components/       — componentes compartilhados
+│   │   ├── styles/           — estilos do app
+│   │   └── contexts/         — contextos do React
+│   ├── index.html
+│   └── vite.config.js
+│
+├── package.json              ← Maestro (controla api/ e web/)
+├── INICIAR.bat              ← Script para iniciar tudo (Windows)
+├── COMECE-AQUI.md           ← Guia rápido
+└── .git/
+```
 
 Banco de dados
 --------------
 
-- O banco de dados é armazenado em `backend/database.sqlite`.
+- O banco de dados é armazenado em `api/database.sqlite`.
 - Não apague esse arquivo se quiser preservar dados e usuários.
 - O backend executa `sequelize.sync({ alter: true })` no startup.
 - Se ocorrer erro de sincronização, há um fallback para `sync({ force: true })`, que recria o banco.
@@ -133,30 +151,35 @@ Observações
 - Defina `JWT_SECRET` para um valor forte em produção.
 - Não comite `.env` com dados reais.
 - Mantenha `package-lock.json` para consistência das dependências.
-- Para backup, copie o arquivo `backend/database.sqlite`.
+- Para backup, copie o arquivo `api/database.sqlite`.
 
 Comandos rápidos
 ---------------
 
-Backend:
+**Primeira vez (setup completo):**
 
 ```bash
-cd backend
-npm install
+npm run install:all
 npm run dev
 ```
 
-Frontend:
+**Próximas vezes:**
 
 ```bash
-cd frontend
-npm install
 npm run dev
 ```
 
-Pronto
------
+Ou clique em `INICIAR.bat` (Windows)
 
-Este `README.md` é a referência principal do projeto. Se quiser, posso também gerar o arquivo `backend/.env` com o admin padrão e os valores necessários para iniciar o projeto imediatamente.
+🚀 Para Outro Computador
+------------------------
 
-Diga qual opção prefere e eu aplico.
+1. Copie a pasta inteira `meu-projeto/`
+2. Abra terminal na raiz
+3. Execute:
+   ```bash
+   npm run install:all
+   npm run dev
+   ```
+
+**Pronto!** Sem erros de conexão ou configuração! ✨
