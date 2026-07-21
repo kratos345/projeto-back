@@ -10,7 +10,12 @@ const safe = (u) => { const { password, ...rest } = u.toJSON(); return rest; };
 
 exports.getMe = async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.user.id);
+    const userId = Number(req.user?.id);
+    if (!userId || Number.isNaN(userId)) {
+      return res.status(401).json({ message: 'Usuário não autenticado.' });
+    }
+
+    const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'Usuario nao encontrado.' });
     res.json(safe(user));
   } catch (err) {
@@ -20,7 +25,12 @@ exports.getMe = async (req, res, next) => {
 
 exports.updateMe = async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.user.id);
+    const userId = Number(req.user?.id);
+    if (!userId || Number.isNaN(userId)) {
+      return res.status(401).json({ message: 'Usuário não autenticado.' });
+    }
+
+    const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'Usuario nao encontrado.' });
 
     const updateData = { ...req.body };
@@ -28,6 +38,19 @@ exports.updateMe = async (req, res, next) => {
     if (req.user.role !== 'admin') {
       delete updateData.role;
       delete updateData.status;
+    }
+
+    if (updateData.cpfCnpj !== undefined) {
+      updateData.cpfCnpj = updateData.cpfCnpj?.trim() || null;
+    }
+    if (updateData.company !== undefined) {
+      updateData.company = updateData.company?.trim() || null;
+    }
+    if (updateData.creci !== undefined) {
+      updateData.creci = updateData.creci?.trim() || null;
+    }
+    if (updateData.website !== undefined) {
+      updateData.website = updateData.website?.trim() || null;
     }
 
     if (updateData.password) {
@@ -99,7 +122,12 @@ exports.uploadAvatar = async (req, res, next) => {
       return res.status(400).json({ message: 'Nenhum arquivo enviado.' });
     }
 
-    const user = await User.findByPk(req.user.id);
+    const userId = Number(req.user?.id);
+    if (!userId || Number.isNaN(userId)) {
+      return res.status(401).json({ message: 'Usuário não autenticado.' });
+    }
+
+    const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'Usuario nao encontrado.' });
 
     const fileUrl = `${req.protocol}://${req.get('host')}/uploads/users/${req.file.filename}`;
@@ -297,6 +325,19 @@ exports.update = async (req, res, next) => {
     if (req.user.role !== 'admin') {
       delete updateData.role;
       delete updateData.status;
+    }
+
+    if (updateData.cpfCnpj !== undefined) {
+      updateData.cpfCnpj = updateData.cpfCnpj?.trim() || null;
+    }
+    if (updateData.company !== undefined) {
+      updateData.company = updateData.company?.trim() || null;
+    }
+    if (updateData.creci !== undefined) {
+      updateData.creci = updateData.creci?.trim() || null;
+    }
+    if (updateData.website !== undefined) {
+      updateData.website = updateData.website?.trim() || null;
     }
 
     if (updateData.password) {

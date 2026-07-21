@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyProperties, deleteProperty, getProperties } from '../../api/properties';
@@ -13,7 +13,6 @@ import VendedorDashboard from './components/VendedorDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import UsersPage from '../Users/UsersPage';
 import { Ic, fmt, formatDate, StatusBadge, ListingModal, ListingCard, StatCard } from './components/DashboardHelpers';
-import logo from '../../assets/logo.png';
 
 // Observação: anteriormente usamos mocks para a aba Explorar.
 // Agora a aba Explorar deve carregar apenas anúncios reais criados no backend.
@@ -57,8 +56,8 @@ const tabTitles = {
 
 const getErrorMessage = (err, fallback) => err?.response?.data?.message || err?.message || fallback;
 
-const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
-  <div className="sidebar" style={{ width: 230, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
+const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user, logoutInProgress, logoutSeconds }) => (
+  <div className="sidebar" style={{ width: 250, minHeight: '100vh', padding: '24px 14px', display: 'flex', flexDirection: 'column' }}>
     <div style={{ marginBottom: 32 }}>
       <span className="playfair gold-text" style={{ fontSize: 20, fontWeight: 700 }}>Prime Venda</span>
       <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(201,168,76,.06)', border: '1px solid rgba(201,168,76,.12)', borderRadius: 12, padding: '10px 12px' }}>
@@ -74,7 +73,7 @@ const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
       </div>
     </div>
 
-    <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+    <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, overflow: 'auto' }}>
       {/* Abas baseadas no role */}
       {role === 'usuario' && TABS.usuario.map(tab => (
         <div 
@@ -108,9 +107,10 @@ const Sidebar = ({ role, activeTab, setActiveTab, onLogout, user }) => (
       ))}
     </nav>
 
-    <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-      <div className="nav-item" onClick={onLogout} style={{ cursor: 'pointer' }}>
-        <Ic name="logout" size={16} /> Sair
+    <div className="logout-wrapper" style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+      <div className="nav-item logout-item" onClick={logoutInProgress ? undefined : onLogout} style={{ cursor: logoutInProgress ? 'not-allowed' : 'pointer', opacity: logoutInProgress ? 0.65 : 1 }}>
+        <span className="nav-icon" aria-hidden>🔒</span>
+        <span style={{ marginLeft: 8 }}>{logoutInProgress ? `Deslogando... (${logoutSeconds}s)` : 'Sair'}</span>
       </div>
     </div>
   </div>
@@ -120,7 +120,9 @@ const Header = ({ title, role }) => (
   <div className="top-bar">
     <h1 className="playfair" style={{ fontSize: 20, fontWeight: 600 }}>{title}</h1>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src={logo} alt="Logo" style={{ height: 40, maxWidth: 200, objectFit: 'contain' }} />
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--gold)', letterSpacing: '0.5px' }}>
+          Fecomercio PB <span style={{ color: 'var(--muted)', margin: '0 6px' }}>|</span> Senac
+        </div>
     </div>
   </div>
 );
@@ -456,10 +458,10 @@ const PerfilTab = ({ role, user, onUserUpdate }) => {
         email: formData.email,
         phone: formData.phone,
         profileImage,
-        cpfCnpj: formData.cpfCnpj,
-        company: formData.company,
-        creci: formData.creci,
-        website: formData.website
+        cpfCnpj: formData.cpfCnpj?.trim() ? formData.cpfCnpj.trim() : null,
+        company: formData.company?.trim() || null,
+        creci: formData.creci?.trim() || null,
+        website: formData.website?.trim() || null
       };
 
       const response = await updateCurrentUser(payload);
@@ -627,9 +629,10 @@ const UsuarioFavoritesTab = () => {
           {favorites.map((favorite) => {
             const item = favorite.Property || favorite.property;
             if (!item) return null;
+            const imageUrl = item.image || item.images?.find((img) => img?.isFeatured)?.url || item.images?.[0]?.url || item.seller?.profileImage || 'https://via.placeholder.com/400';
             return (
               <div key={favorite.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <img src={item.image || 'https://via.placeholder.com/400'} alt={item.title} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 14 }} />
+                <img src={imageUrl} alt={item.title} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 14 }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{item.title || 'Anúncio favorito'}</h3>
@@ -755,6 +758,12 @@ export default function DashboardPage() {
   const { user, setUser, loading, signout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(null);
+  const [logoutInProgress, setLogoutInProgress] = useState(false);
+  const [logoutProgress, setLogoutProgress] = useState(0);
+  const [logoutSeconds, setLogoutSeconds] = useState(4);
+  const [logoutMessage, setLogoutMessage] = useState('');
+  const logoutCountdownRef = useRef(null);
+  const logoutTimeoutRef = useRef(null);
 
   const normalizeRole = (role) => {
     if (role === 'user') return 'usuario';
@@ -771,14 +780,35 @@ export default function DashboardPage() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    return () => {
+      if (logoutCountdownRef.current) clearInterval(logoutCountdownRef.current);
+      if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (user && TABS[roleKey]) {
       setActiveTab((prev) => prev || TABS[roleKey][0]);
     }
   }, [user, roleKey]);
 
   const handleLogout = () => {
-    signout();
-    navigate('/login');
+    if (logoutInProgress) return;
+    setLogoutInProgress(true);
+    setLogoutMessage('Deslogando da conta');
+    setLogoutProgress(0);
+    setLogoutSeconds(4);
+
+    logoutCountdownRef.current = setInterval(() => {
+      setLogoutProgress((old) => Math.min(100, old + 25));
+      setLogoutSeconds((old) => Math.max(0, old - 1));
+    }, 1000);
+
+    logoutTimeoutRef.current = setTimeout(() => {
+      if (logoutCountdownRef.current) clearInterval(logoutCountdownRef.current);
+      signout();
+      navigate('/login');
+    }, 4000);
   };
 
   const handleUserUpdate = (updatedUser) => {
@@ -801,9 +831,17 @@ export default function DashboardPage() {
     <>
       <PrimeVendaTheme />
       <div className="page-shell">
-        <Sidebar role={roleKey} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} user={user} />
+        <Sidebar role={roleKey} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} user={user} logoutInProgress={logoutInProgress} logoutSeconds={logoutSeconds} />
         <div className="dashboard-main">
           <Header title={tabTitles[activeTab] || 'Dashboard'} role={roleKey} />
+          {logoutMessage && (
+            <div style={{ margin: '0 24px 18px', padding: 18, borderRadius: 16, background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.25)', color: '#1d4ed8' }}>
+              <strong>{`${logoutMessage}... (${logoutSeconds}s)`}</strong>
+              <div style={{ marginTop: 12, width: '100%', height: 10, borderRadius: 999, background: 'rgba(59, 130, 246, 0.15)' }}>
+                <div style={{ width: `${logoutProgress}%`, height: '100%', borderRadius: 999, background: '#3b82f6', transition: 'width 0.1s ease' }} />
+              </div>
+            </div>
+          )}
           <div className="dashboard-content">
             <TabContent role={roleKey} tab={activeTab} user={user} onUserUpdate={handleUserUpdate} />
           </div>

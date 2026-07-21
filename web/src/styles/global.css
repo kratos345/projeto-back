@@ -162,6 +162,53 @@ main p {
   margin-bottom: 1.5rem;
 }
 
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 80px;
+}
+
+.app-layout {
+  flex: 1;
+}
+
+.app-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #111827;
+  color: #f8fafc;
+  padding: 0.8rem 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+}
+
+.app-footer p {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.app-footer a {
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-footer a:hover {
+  text-decoration: underline;
+}
+
 .form-card {
   background: white;
   border: 1px solid #e5e7eb;

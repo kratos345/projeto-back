@@ -30,31 +30,45 @@ function RoleBasedRoute({ children, allowedRoles }) {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login"    element={<LoginPage />} />
+      <div className="app-wrapper">
+        <div className="app-layout">
+          <Routes>
+            <Route path="/login"    element={<LoginPage />} />
 
-        {/* Dashboard principal - acessível para todos os usuários logados */}
-        <Route path="/"         element={<Private><DashboardPage /></Private>} />
+            {/* Dashboard principal - acessível para todos os usuários logados */}
+            <Route path="/"         element={<Private><DashboardPage /></Private>} />
 
-        {/* Rotas específicas por role */}
-        <Route path="/users"         element={<RoleBasedRoute allowedRoles={['admin']}><UsersPage /></RoleBasedRoute>} />
-        <Route path="/users/edit/:id" element={<RoleBasedRoute allowedRoles={['admin']}><EditUserPage /></RoleBasedRoute>} />
-        <Route path="/admin"         element={<RoleBasedRoute allowedRoles={['admin']}><AdminPage /></RoleBasedRoute>} />
-        <Route path="/admin/requests" element={<RoleBasedRoute allowedRoles={['admin']}><RequestsPage /></RoleBasedRoute>} />
+            {/* Rotas específicas por role */}
+            <Route path="/users"         element={<RoleBasedRoute allowedRoles={['admin']}><UsersPage /></RoleBasedRoute>} />
+            <Route path="/users/edit/:id" element={<RoleBasedRoute allowedRoles={['admin']}><EditUserPage /></RoleBasedRoute>} />
+            <Route path="/admin"         element={<RoleBasedRoute allowedRoles={['admin']}><AdminPage /></RoleBasedRoute>} />
+            <Route path="/admin/requests" element={<RoleBasedRoute allowedRoles={['admin']}><RequestsPage /></RoleBasedRoute>} />
 
-        {/* Rotas de vendedor */}
-        <Route path="/properties/my"     element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
-        <Route path="/properties/new"    element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
-        <Route path="/properties/edit/:id" element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
-        <Route path="/properties/:id" element={<Private><PropertyDetailsPage /></Private>} />
-        <Route path="/leads"    element={<RoleBasedRoute allowedRoles={['vendedor']}><LeadsPage /></RoleBasedRoute>} />
-        <Route path="/sales"    element={<RoleBasedRoute allowedRoles={['vendedor']}><SalesPage /></RoleBasedRoute>} />
+            {/* Rotas de vendedor */}
+            <Route path="/properties/my"     element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
+            <Route path="/properties/new"    element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
+            <Route path="/properties/edit/:id" element={<RoleBasedRoute allowedRoles={['vendedor']}><PropertiesListPage /></RoleBasedRoute>} />
+            <Route path="/properties/:id" element={<Private><PropertyDetailsPage /></Private>} />
+            <Route path="/leads"    element={<RoleBasedRoute allowedRoles={['vendedor']}><LeadsPage /></RoleBasedRoute>} />
+            <Route path="/sales"    element={<RoleBasedRoute allowedRoles={['vendedor']}><SalesPage /></RoleBasedRoute>} />
 
-        {/* Rotas de comprador */}
-        <Route path="/search"   element={<RoleBasedRoute allowedRoles={['user']}><SearchPage /></RoleBasedRoute>} />
+            {/* Rotas de comprador */}
+            <Route path="/search"   element={<RoleBasedRoute allowedRoles={['user']}><SearchPage /></RoleBasedRoute>} />
 
-        <Route path="*"         element={<Navigate to="/" replace />} />
-      </Routes>
+            <Route path="*"         element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
     </BrowserRouter>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="app-footer">
+      <p>Fecomercio PB | Senac - API feita por Leonardo</p>
+      <a href="https://github.com/kratos345/projeto-back" target="_blank" rel="noreferrer">GitHub</a>
+    </footer>
   )
 }

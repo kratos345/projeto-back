@@ -13,6 +13,10 @@ exports.authMiddleware = (req, res, next) => {
     const secret = process.env.JWT_SECRET || 'dev_secret_123';
     const decoded = jwt.verify(token, secret);
 
+    if (!decoded || !decoded.id) {
+      return res.status(401).json({ message: "Token inválido" });
+    }
+
     req.user = decoded;
 
     next();

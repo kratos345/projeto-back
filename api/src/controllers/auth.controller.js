@@ -157,3 +157,44 @@ exports.login = async (req, res) => {
     return res.status(500).json({ message });
   }
 };
+
+// 🟡 ESQUECI/REDEFINIR SENHA (simples, sem token)
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email é obrigatório' });
+
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      console.log('🔍 Esqueci senha: email não encontrado', email);
+      return res.status(404).json({ message: 'Email não encontrado' });
+    }
+
+    // Nota: idealmente aqui enviaríamos um e-mail com token.
+    // Para atender ao pedido do cliente, apenas confirmamos a existência do e-mail.
+    return res.json({ message: 'Email encontrado' });
+  } catch (error) {
+    console.error('❌ Erro em forgotPassword:', error);
+    return res.status(500).json({ message: 'Erro ao processar a solicitação.' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: 'Email e nova senha são obrigatórios' });
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ message: 'Email não encontrado' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await user.update({ password: hashedPassword });
+
+    console.log('✅ Senha redefinida para:', email);
+    return res.json({ message: 'Senha atualizada com sucesso' });
+  } catch (error) {
+    console.error('❌ Erro em resetPassword:', error);
+    return res.status(500).json({ message: 'Erro ao redefinir a senha.' });
+  }
+};

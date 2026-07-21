@@ -12,6 +12,7 @@
   color: #e5e7eb;
   border-right: 1px solid rgba(255,255,255,.06);
   padding: 24px 18px;
+  position: relative;
 }
 
 .sidebar .nav-item {
@@ -29,6 +30,59 @@
 .sidebar .nav-item.active {
   background: rgba(255,255,255,.08);
   color: #fff;
+}
+
+/* Logout wrapper to keep logout anchored and styled consistently */
+.sidebar .logout-wrapper {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 40px; /* place logout closer to bottom */
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+}
+
+.sidebar .logout-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #cbd5e1;
+  cursor: pointer;
+  width: 100%;
+}
+
+.sidebar .logout-item:hover {
+  background: rgba(255,255,255,.04);
+  color: #fff;
+}
+
+/* Ensure icon alignment inside nav items */
+.sidebar .nav-item > svg,
+.sidebar .nav-item > i,
+.sidebar .logout-item > svg,
+.sidebar .logout-item > i {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* give nav extra bottom padding so its scrollable content doesn't hide under the absolute logout */
+.sidebar nav { padding-bottom: 140px; }
+
+.sidebar .nav-item span,
+.sidebar .logout-item span {
+  line-height: 1;
+}
+
+.sidebar .nav-icon {
+  display: inline-block;
+  width: 18px;
+  text-align: center;
+  line-height: 1;
 }
 
 .dashboard-main {

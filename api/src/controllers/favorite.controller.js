@@ -55,7 +55,13 @@ exports.getByUser = async (req, res, next) => {
 
     const favorites = await Favorite.findAll({
       where: { userId },
-      include: [{ model: require('../models/Property') }]
+      include: [{
+        model: require('../models/Property'),
+        include: [
+          { model: require('../models/PropertyImage'), as: 'images' },
+          { model: require('../models/User'), as: 'seller', attributes: ['id', 'name', 'profileImage'] }
+        ]
+      }]
     });
 
     res.json(favorites);

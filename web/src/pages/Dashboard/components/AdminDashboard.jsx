@@ -47,27 +47,6 @@ export default function AdminDashboard() {
         <p style={{ color: 'var(--muted)', fontSize: 14 }}>Tudo que um administrador precisa para gerir a plataforma.</p>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
-          <div style={{ flex: '0 0 320px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 14 }}>
-            <h4 style={{ margin: 0, fontSize: 15 }}>📨 Solicitações de conta</h4>
-            <p style={{ margin: '6px 0 12px', color: 'var(--muted)' }}>{reqLoading ? 'Carregando...' : `${requests.length} total`}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 110, overflow: 'auto' }}>
-              {requests.slice(0,5).map(r => (
-                <div key={r.id} style={{ padding: 8, borderRadius: 8, border: '1px solid rgba(0,0,0,.04)' }}>
-                  <div style={{ fontWeight: 600 }}>{r.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)' }}>{r.cpfCnpj}</div>
-                </div>
-              ))}
-              {requests.length === 0 && !reqLoading && <div style={{ color: 'var(--muted)' }}>Nenhuma solicitação recente</div>}
-            </div>
-            <div style={{ marginTop: 10, textAlign: 'right' }}>
-              <button onClick={() => navigate('/admin/requests')} style={{ background: 'transparent', border: 0, color: 'var(--gold)', cursor: 'pointer' }}>Ver todas →</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 16, marginBottom: 28 }}>
         <StatCard icon="building" label="Total de propriedades" value={metrics.properties.total || 0} color="var(--gold)" />
         <StatCard icon="tag" label="Anúncios pendentes" value={metrics.properties.pending || 0} color="var(--amber)" />

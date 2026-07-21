@@ -19,3 +19,13 @@ export const requestAccount = async (data) => {
   return response.data;
 };
 
+export const forgotPassword = async (email) => {
+  const response = await client.post('/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const resetPassword = async (email, password) => {
+  const response = await client.post('/auth/reset-password', { email, password });
+  return response.data;
+};
+
